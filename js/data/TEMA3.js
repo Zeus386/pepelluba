@@ -2,7 +2,7 @@
 
 const TEMA3_PROOFS = {
     "3_15": {
-        title: "Tema 3 - Ejercicio 15 (Deducción por Tareas)",
+        title: "Tema 3 - Ejercicio 15 (Deducción)s",
         steps: [
             {
                 code: "lemma ejercicio_15:\n assumes \"P ⟶ (Q ⟶ R)\"\n shows \"(P ∧ Q) ⟶ R\"",
@@ -16,7 +16,7 @@ const TEMA3_PROOFS = {
                 activeHyp: ["P ⟶ (Q ⟶ R)", "P ∧ Q"],
                 highlights: ["impI"]
             },
-             {
+            {
                 code: "  assume \"P ∧ Q\"",
                 explanation: "Asumimos la conjunción P ∧ Q como hipótesis temporal.",
                 activeHyp: ["P ⟶ (Q ⟶ R)", "P ∧ Q"],
@@ -28,7 +28,7 @@ const TEMA3_PROOFS = {
                 activeHyp: ["P ⟶ (Q ⟶ R)", "P"],
                 highlights: ["hence"]
             },
-             {
+            {
                 code: "  from `P ∧ Q` have \"Q\"",
                 explanation: "De la misma manera, deducimos Q desde el aserto inicial.",
                 activeHyp: ["P ⟶ (Q ⟶ R)", "P", "Q"],
@@ -40,12 +40,12 @@ const TEMA3_PROOFS = {
                 activeHyp: ["P ⟶ (Q ⟶ R)", "Q ⟶ R"],
                 highlights: ["from"]
             },
-             {
+            {
                 code: "  from this and `Q` show \"R\"\nqed",
                 explanation: "Finalmente, al tener Q ⟶ R y saber que Q es cierto, concluimos que R es cierto, cerrando la demostración.",
                 activeHyp: ["R"],
                 highlights: ["show", "qed"]
-            }
+            },
         ]
     },
     "3_17": {
@@ -63,7 +63,7 @@ const TEMA3_PROOFS = {
                 activeHyp: ["(p ∧ q) ∨ (q ∧ r)", "¬q"],
                 highlights: ["ccontr", "¬q"]
             },
-             {
+            {
                 code: "  from assms show False\n  proof\n    assume \"p ∧ q\"",
                 explanation: "Comenzamos a romper la disyunción en sus dos casos. Caso 1: Supongamos que ocurre la rama p ∧ q.",
                 activeHyp: ["¬q", "p ∧ q"],
@@ -81,14 +81,14 @@ const TEMA3_PROOFS = {
                 activeHyp: ["¬q", "q ∧ r"],
                 highlights: ["next", "assume"]
             },
-             {
+            {
                 code: "    hence \"q\"\n    with `¬q` show False by contradiction\n  qed\nqed",
                 explanation: "Al igual que antes, de esta rama extraemos q, que vuelve a chocar con ¬q, creando una contradicción por segunda vez. ¡Ambas ramas terminan en absurdo!",
                 activeHyp: ["q", "¬q", "False"],
                 highlights: ["hence", "contradiction", "qed"]
-            }
+            },
         ]
-    }
+    },
 };
 
 window.TEMA3_PROOFS = TEMA3_PROOFS;

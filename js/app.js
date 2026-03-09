@@ -540,13 +540,22 @@ document.addEventListener('DOMContentLoaded', () => {
         stepsContainer: document.getElementById('adm-steps-container'),
         addStepBtn: document.getElementById('adm-add-step'),
         saveBtn: document.getElementById('adm-save-ex'),
-        saveMsg: document.getElementById('adm-save-msg')
+        saveMsg: document.getElementById('adm-save-msg'),
+        // AI Import
+        importAiBtn: document.getElementById('adm-import-ai'),
+        screenImportAi: document.getElementById('adm-ai-import'),
+        backExsFromAi: document.getElementById('adm-back-exs-from-ai'),
+        aiCopyPromptBtn: document.getElementById('adm-ai-copy-prompt'),
+        aiCopyMsg: document.getElementById('adm-ai-copy-msg'),
+        aiJsonInput: document.getElementById('adm-ai-json-input'),
+        aiProcessBtn: document.getElementById('adm-ai-process'),
+        aiErrorMsg: document.getElementById('adm-ai-error-msg')
     };
 
     let admState = { themeId: null, exKey: null, isNew: false };
 
     function admShowScreen(screen) {
-        [adminDOM.screenThemes, adminDOM.screenExercises, adminDOM.screenEditor].forEach(s => {
+        [adminDOM.screenThemes, adminDOM.screenExercises, adminDOM.screenEditor, adminDOM.screenImportAi].forEach(s => {
             if (s) s.classList.add('hidden');
         });
         if (screen) screen.classList.remove('hidden');
@@ -677,6 +686,77 @@ document.addEventListener('DOMContentLoaded', () => {
         admState.exKey = `exe${maxNum + 1}`;
         admState.isNew = true;
         admOpenEditor({ title: '', name: `${admState.themeId}_${maxNum+1}`, defaultMethod: '' });
+    });
+
+    // Sub-Screen 4: Import AI Logic
+    if (adminDOM.importAiBtn) adminDOM.importAiBtn.addEventListener('click', () => {
+        admShowScreen(adminDOM.screenImportAi);
+        adminDOM.aiJsonInput.value = '';
+        adminDOM.aiErrorMsg.textContent = '';
+        adminDOM.aiCopyMsg.textContent = '';
+    });
+
+    if (adminDOM.backExsFromAi) adminDOM.backExsFromAi.addEventListener('click', admRenderExercises);
+
+    if (adminDOM.aiCopyPromptBtn) adminDOM.aiCopyPromptBtn.addEventListener('click', () => {
+        const promptInfo = `Actúa como un profesor experto en lógica e Isabelle/HOL. 
+Crea un nuevo ejercicio didáctico de deducción natural para el Tema ${admState.themeId}.
+Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto adicional ni bloques de markdown (ni \`\`\`json):
+
+{
+  "title": "Nombre legible del ejercicio (ej: Modus Ponens, Silogismo Disyuntivo...)",
+  "name": "${admState.themeId}_[ID_unico_breve_sin_espacios]",
+  "defaultMethod": "Deducción por Tareas",
+  "steps": [
+    {
+      "code": "lemma ...",
+      "explanation": "Breve explicación de por qué hacemos esto",
+      "activeHyp": ["Hipótesis 1", "Hipótesis 2"],
+      "highlights": ["Regla a aplicar"]
+    }
+  ]
+}`;
+        navigator.clipboard.writeText(promptInfo).then(() => {
+            adminDOM.aiCopyMsg.style.color = 'var(--c-accent-dark)';
+            adminDOM.aiCopyMsg.textContent = '¡Prompt copiado al portapapeles!';
+            setTimeout(() => { adminDOM.aiCopyMsg.textContent = ''; }, 3000);
+        }).catch(err => {
+            adminDOM.aiCopyMsg.style.color = '#d93025';
+            adminDOM.aiCopyMsg.textContent = 'Error al copiar: ' + err;
+        });
+    });
+
+    if (adminDOM.aiProcessBtn) adminDOM.aiProcessBtn.addEventListener('click', () => {
+        try {
+            const rawText = adminDOM.aiJsonInput.value.trim();
+            if (!rawText) throw new Error("Pega la respuesta JSON primero.");
+
+            // Basic cleanup if Gemini includes markdown blocks
+            let cleanText = rawText.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '').trim();
+            const aiData = JSON.parse(cleanText);
+
+            if (!aiData.title || !aiData.name || !Array.isArray(aiData.steps)) {
+                throw new Error("El JSON no tiene la estructura correcta (title, name, steps).");
+            }
+
+            // Route to editor
+            const entries = Object.keys(window.EXERCISES_DATA[admState.themeId].exercises || {});
+            const maxNum = entries.reduce((max, k) => Math.max(max, parseInt(k.replace('exe','')) || 0), 0);
+            admState.exKey = `exe${maxNum + 1}`;
+            admState.isNew = true;
+            
+            // Put it in local fake state so the editor can load the steps
+            state.proofs[aiData.name] = { steps: aiData.steps };
+
+            admOpenEditor({ 
+                title: aiData.title, 
+                name: aiData.name, 
+                defaultMethod: aiData.defaultMethod || "Deducción por Tareas" 
+            });
+
+        } catch(err) {
+            adminDOM.aiErrorMsg.textContent = "Error JSON: " + err.message;
+        }
     });
 
     // Screen 3: Editor

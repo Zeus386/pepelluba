@@ -28,8 +28,7 @@ const EXERCISES_DATA = {
     "3": {
         title: "Tema 3: Deducción Natural",
         exercises: {
-            "exe15": { title: "Ejercicio 15 (Deducción)", name: "3_15", defaultMethod: "Deducción por Tareas" },
-            "exe17": { title: "Ejercicio 17 (Deducción)", name: "3_17", defaultMethod: "Deducción por Tareas" },
+            "exe15": { title: "Ejercicio 15 (Deducción)s", name: "3_15", defaultMethod: "Deducción por Tareas" },
         }
     },
     "4": {

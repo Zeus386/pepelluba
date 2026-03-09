@@ -33,23 +33,23 @@
 
     <!-- ENCABEZADO GLOBAL (Siempre visible) -->
     <div id="global-header" class="global-header hidden-element">
-        <button id="global-back" class="icon-btn" aria-label="Volver al inicio">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 12H5M12 19l-7-7 7-7" />
+        <button id="global-back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/>
             </svg>
+            <span>VOLVER</span>
         </button>
-        <h1 id="header-text">@pepelluba</h1>
-        <div id="header-spacer" class="header-spacer"></div>
     </div>
 
-    <!-- LIGHT SWITCH (Theme Toggle) -->
-    <div class="light-switch-wrapper">
-        <input type="checkbox" id="theme-toggle">
-        <label for="theme-toggle" class="light-switch" aria-label="Cambiar modo oscuro/claro"></label>
-    </div>
+
 
     <!-- PANTALLA 1: INTRODUCCIÓN ANIMADA -->
     <div id="intro-screen" class="screen active">
+        <!-- Switch for Intro -->
+        <div class="light-switch-wrapper intro-switch">
+            <input type="checkbox" class="theme-toggle" id="theme-toggle-intro">
+            <label for="theme-toggle-intro" class="light-switch" aria-label="Cambiar modo oscuro/claro"></label>
+        </div>
         <div class="intro-content">
             <h1 id="intro-text">@pepelluba</h1>
             <div id="intro-reveal" class="hidden">
@@ -64,13 +64,21 @@
 
         <!-- SIDEBAR: Temas -->
         <aside id="sidebar">
-            <div class="sidebar-header">
-                <h2>Lógica</h2>
-                <span>Matemática</span>
+            <div class="liquidGlass-wrapper sidebar-dock">
+                <div class="liquidGlass-effect"></div>
+                <div class="liquidGlass-tint"></div>
+                <div class="liquidGlass-shine"></div>
+                <div class="liquidGlass-text sidebar-dock-inner">
+                    <nav id="theme-nav">
+                        <!-- Temas inyectados aquí por JS -->
+                    </nav>
+                    <div class="sidebar-divider"></div>
+                    <div class="light-switch-wrapper sidebar-switch">
+                        <input type="checkbox" class="theme-toggle" id="theme-toggle-app">
+                        <label for="theme-toggle-app" class="light-switch" aria-label="Cambiar modo oscuro/claro"></label>
+                    </div>
+                </div>
             </div>
-            <nav id="theme-nav">
-                <!-- Temas inyectados aquí por JS -->
-            </nav>
         </aside>
 
         <!-- ÁREA CENTRAL: Contenido dinámico -->
@@ -78,9 +86,8 @@
 
             <!-- Vista de la Wiki / Guía -->
             <section id="wiki-view" class="view hidden-view">
-                <header class="section-header" style="margin-bottom: 2rem;">
-                    <h3 style="font-size: 1.8rem; font-family: 'Outfit', sans-serif;">Deducción Natural en Isabelle
-                    </h3>
+                <header class="section-header">
+                    <h3>Deducción Natural en Isabelle</h3>
                 </header>
                 <div class="wiki-content"
                     style="height: calc(100vh - 160px); overflow-y: auto; padding-right: 1rem; padding-bottom: 2rem;">
@@ -400,12 +407,6 @@
             <!-- Vista del Editor de Isabelle -->
             <section id="isabelle-view" class="view hidden-view">
                 <header class="isabelle-header">
-                    <button id="back-btn" class="icon-btn" aria-label="Volver">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M19 12H5M12 19l-7-7 7-7" />
-                        </svg>
-                    </button>
                     <div>
                         <h3 id="exercise-title">Prueba</h3>
                     </div>
@@ -453,6 +454,63 @@
 
         </main>
     </div>
+
+    <!-- SVG FILTER FOR LIQUID GLASS -->
+    <svg style="display: none">
+      <filter
+        id="glass-distortion"
+        x="0%"
+        y="0%"
+        width="100%"
+        height="100%"
+        filterUnits="objectBoundingBox"
+      >
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency="0.01 0.01"
+          numOctaves="1"
+          seed="5"
+          result="turbulence"
+        />
+
+        <feComponentTransfer in="turbulence" result="mapped">
+          <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+          <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+          <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+        </feComponentTransfer>
+
+        <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+
+        <feSpecularLighting
+          in="softMap"
+          surfaceScale="5"
+          specularConstant="1"
+          specularExponent="100"
+          lighting-color="white"
+          result="specLight"
+        >
+          <fePointLight x="-200" y="-200" z="300" />
+        </feSpecularLighting>
+
+        <feComposite
+          in="specLight"
+          operator="arithmetic"
+          k1="0"
+          k2="1"
+          k3="1"
+          k4="0"
+          result="litImage"
+        />
+
+        <feDisplacementMap
+          in="SourceGraphic"
+          in2="softMap"
+          scale="150"
+          xChannelSelector="R"
+          yChannelSelector="G"
+        />
+      </filter>
+    </svg>
 
     <!-- Cero dependencias externas. Solo un archivo JS puro y duro. -->
     <script src="js/data/main_config.js"></script>

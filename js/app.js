@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentThemeId: null,
         currentExercise: null,
         currentStep: -1,
+        sidebarInitialized: false,
         proofs: { 
             ...(window.TEMA1_PROOFS || {}), 
             ...(window.TEMA2_PROOFS || {}), 
@@ -60,13 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         globalHeader: document.getElementById('global-header'),
         globalBack: document.getElementById('global-back'),
-        themeToggle: document.getElementById('theme-toggle'),
+        themeToggles: document.querySelectorAll('.theme-toggle'),
         themeNav: document.getElementById('theme-nav'),
         exercisesGrid: document.getElementById('exercises-grid'),
         currentThemeTitle: document.getElementById('current-theme-title'),
         isabelle: {
             title: document.getElementById('exercise-title'),
-            btnBack: document.getElementById('back-btn'),
             codeContainer: document.getElementById('code-container'),
             explanation: document.getElementById('explanation-text'),
             hypotheses: document.getElementById('active-hypotheses'),
@@ -74,28 +74,46 @@ document.addEventListener('DOMContentLoaded', () => {
             btnPrev: document.getElementById('btn-prev'),
             btnNext: document.getElementById('btn-next'),
             codeScroll: document.getElementById('code-scroll')
-        }
+        },
+        adminView: document.getElementById('admin-view'), // Cache the admin view
+        themeBtns: [] // To be filled in renderSidebar
     };
 
     // ==========================================
     // THEME TOGGLE (Modo Oscuro/Claro)
     // ==========================================
     function initTheme() {
-        // Mirar la caché
-        const isDark = localStorage.getItem('pepeweb_theme') === 'dark';
+        // Handle all theme-toggle elements
+        const theme = localStorage.getItem('pepeweb_theme') || 'light';
+        const isDark = (theme === 'dark');
+        const htmlEl = document.documentElement;
+
+        // Al cargar, trasladamos el estado de preload al body
         if (isDark) {
             document.body.classList.add('dark-mode');
-            DOM.themeToggle.checked = true;
         }
-
-        DOM.themeToggle.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                document.body.classList.add('dark-mode');
-                localStorage.setItem('pepeweb_theme', 'dark');
-            } else {
-                document.body.classList.remove('dark-mode');
-                localStorage.setItem('pepeweb_theme', 'light');
-            }
+        // Una vez que JS está activo, ya no necesitamos la clase de preload
+        if (htmlEl.classList.contains('dark-mode-preload')) {
+            htmlEl.classList.remove('dark-mode-preload');
+        }
+        
+        DOM.themeToggles.forEach(t => {
+            t.checked = isDark;
+            t.onchange = () => { // Use onchange for simpler assignment
+                const checked = t.checked;
+                // Sync all toggles to the same state
+                DOM.themeToggles.forEach(other => other.checked = checked);
+                
+                if (checked) {
+                    document.body.classList.add('dark-mode');
+                    htmlEl.classList.remove('dark-mode-preload');
+                    localStorage.setItem('pepeweb_theme', 'dark');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    htmlEl.classList.remove('dark-mode-preload');
+                    localStorage.setItem('pepeweb_theme', 'light');
+                }
+            };
         });
     }
     initTheme();
@@ -114,15 +132,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.body.addEventListener('mouseover', (e) => {
-            const target = e.target;
-            if (target.closest('button, a, input, .wiki-subsummary, .exercise-card, .light-switch, .icon-btn')) {
+            if (e.target.closest('button, a, input, .wiki-subsummary, .exercise-card, .light-switch, .icon-btn')) {
                 cursor.classList.add('hover');
             }
         });
         
         document.body.addEventListener('mouseout', (e) => {
-            const target = e.target;
-            if (target.closest('button, a, input, .wiki-subsummary, .exercise-card, .light-switch, .icon-btn')) {
+            if (e.target.closest('button, a, input, .wiki-subsummary, .exercise-card, .light-switch, .icon-btn')) {
                 cursor.classList.remove('hover');
             }
         });
@@ -131,6 +147,48 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.matchMedia("(pointer: fine)").matches) {
         initCustomCursor();
     }
+
+    // ==========================================
+    // BACKGROUND PARALLAX (Fondo se mueve con cursor)
+    // ==========================================
+    function initBackgroundParallax() {
+        let raf = 0;
+        let nextX = 0;
+        let nextY = 0;
+        const strength = 12; // px (sutil/clean)
+
+        function commit() {
+            raf = 0;
+            document.documentElement.style.setProperty('--bg-x', `${nextX}px`);
+            document.documentElement.style.setProperty('--bg-y', `${nextY}px`);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * strength * 2;
+            const y = (e.clientY / window.innerHeight - 0.5) * strength * 2;
+            nextX = x;
+            nextY = y;
+            if (!raf) raf = requestAnimationFrame(commit);
+        });
+
+        document.addEventListener('mouseleave', () => {
+            document.documentElement.style.setProperty('--bg-x', `0px`);
+            document.documentElement.style.setProperty('--bg-y', `0px`);
+        });
+    }
+
+    if (window.matchMedia("(pointer: fine)").matches) {
+        initBackgroundParallax();
+    }
+
+    // Add artistic label to global back
+    if (DOM.globalBack) {
+        DOM.globalBack.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <span style="font-family:'Outfit';font-weight:300;letter-spacing:1px;font-size:0.9rem;">VOLVER</span>
+        `;
+    }
+
 
 
     // ==========================================
@@ -151,24 +209,29 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.intro.reveal.classList.remove('hidden');
         
         DOM.intro.reveal.animate([
-            { opacity: 0, transform: 'translateY(-20px)' },
-            { opacity: 1, transform: 'translateY(0)' }
+            { opacity: 0, transform: 'translate3d(0, -20px, 0)' },
+            { opacity: 1, transform: 'translate3d(0, 0, 0)' }
         ], { duration: 1000, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
     }
 
     async function transitionToApp(withAnimation = true) {
+        // Cancel all ongoing animations
+        [DOM.screens.intro, DOM.screens.mainApp].forEach(el => {
+            el.getAnimations().forEach(anim => anim.cancel());
+        });
+
         if (withAnimation) {
-            // Animación de salida de la intro
+            // Animación de salida de la intro (agrandar y difuminar)
             const exitAnim = DOM.screens.intro.animate([
-                { opacity: 1, transform: 'scale(1)' },
-                { opacity: 0, transform: 'scale(1.1)' }
+                { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' },
+                { opacity: 0, transform: 'scale(1.1)', filter: 'blur(15px)' }
             ], { 
                 duration: 600, 
-                easing: 'ease-in', 
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)', 
                 fill: 'forwards' 
             });
             await exitAnim.finished;
-            window.location.hash = '#/logica'; // Actualiza URL
+            exitAnim.cancel(); // Cancel after finished to let class styles take over
         }
         
         DOM.screens.intro.classList.replace('active', 'hidden');
@@ -176,46 +239,140 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.globalHeader.classList.remove('hidden-element');
         
         if (withAnimation) {
-            // Fade in suave para la app
             DOM.screens.mainApp.animate([
-                { opacity: 0, transform: 'translateX(-20px)' },
-                { opacity: 1, transform: 'translateX(0)' }
+                { opacity: 0, transform: 'translate3d(30px, 0, 0) scale(0.98)' },
+                { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' }
             ], { duration: 600, easing: 'ease-out', fill: 'forwards' });
         } 
         
-        renderSidebar();
-    }
-
-    DOM.intro.btn.addEventListener('click', () => transitionToApp(true));
-
-    function checkInitialRoute() {
-        if (window.location.hash === '#/logica') {
-            transitionToApp(false);
-            DOM.intro.reveal.classList.remove('hidden');
-            DOM.intro.reveal.style.opacity = '1';
-            DOM.intro.reveal.style.transform = 'translateY(0)';
-            DOM.intro.text.style.opacity = '1';
-        } else {
-            playIntroSequence();
+        if (!state.sidebarInitialized) {
+            renderSidebar();
+            state.sidebarInitialized = true;
         }
     }
 
-    // Navegar atrás al inicio
-    DOM.globalBack.addEventListener('click', () => {
-        window.location.hash = '';
-        
-        // Quitar la clase de carga directa si estaba puesta
-        document.documentElement.classList.remove('direct-logica');
+    async function transitionToIntro(withAnimation = true) {
+        // Cancel all ongoing animations
+        [DOM.screens.intro, DOM.screens.mainApp].forEach(el => {
+            el.getAnimations().forEach(anim => anim.cancel());
+        });
 
+        if (withAnimation) {
+            // Animación de salida de la APP (encoger y difuminar)
+            const exitAnim = DOM.screens.mainApp.animate([
+                { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' },
+                { opacity: 0, transform: 'scale(0.95)', filter: 'blur(15px)' }
+            ], { 
+                duration: 500, 
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)', 
+                fill: 'forwards' 
+            });
+            await exitAnim.finished;
+            exitAnim.cancel();
+        }
+
+        document.documentElement.classList.remove('direct-logica');
         DOM.globalHeader.classList.add('hidden-element');
         DOM.screens.mainApp.classList.replace('active', 'hidden');
         DOM.screens.intro.classList.replace('hidden', 'active');
-        DOM.intro.reveal.classList.remove('hidden');
+
+        // Reset manual
+        DOM.screens.intro.style.opacity = '1';
+        DOM.screens.intro.style.transform = 'scale(1)';
+
+        if (withAnimation) {
+            DOM.intro.text.style.opacity = '0';
+            DOM.intro.reveal.classList.add('hidden');
+            playIntroSequence();
+        } else {
+            DOM.intro.reveal.classList.remove('hidden');
+            DOM.intro.reveal.style.opacity = '1';
+            DOM.intro.text.style.opacity = '1';
+        }
+    }
+
+    DOM.intro.btn.addEventListener('click', () => {
+        window.location.hash = '#/logica';
+    });
+
+    function showIntro(withAnimation = true) {
+        // Wrapper para llamar a la transición correcta
+        transitionToIntro(withAnimation);
+    }
+
+    function checkInitialRoute() {
+        router();
+    }
+
+    // Router Multinivel (Intro / Main / Exercise)
+    function router() {
+        const hash = window.location.hash;
         
-        DOM.screens.intro.animate([
-            { opacity: 0, transform: 'scale(1.1)' },
-            { opacity: 1, transform: 'scale(1)' }
-        ], { duration: 600, easing: 'ease-out', fill: 'forwards' });
+        if (hash.startsWith('#/logica')) {
+            // Mostrar App
+            const wasInIntro = DOM.screens.intro.classList.contains('active');
+            if (wasInIntro) {
+                transitionToApp(true);
+            } else {
+                // Si ya estamos en la app pero estamos ocultos (ej: carga directa)
+                if (!DOM.screens.mainApp.classList.contains('active')) {
+                   DOM.screens.intro.classList.replace('active', 'hidden');
+                   DOM.screens.mainApp.classList.replace('hidden', 'active');
+                   DOM.globalHeader.classList.remove('hidden-element');
+                }
+                if (!state.sidebarInitialized) {
+                    renderSidebar();
+                    state.sidebarInitialized = true;
+                }
+            }
+
+            // Sub-routing para Ejercicios
+            const parts = hash.split('/');
+            if (parts.length > 2) {
+                const exName = parts[parts.length - 1];
+                const exData = findExerciseIdByName(exName);
+                if (exData && (!state.currentExercise || state.currentExercise.name !== exName)) {
+                    // Animación interna de entrada al editor
+                    openIsabelleView(exData, false);
+                }
+            } else {
+                // Si estamos en la raíz de logica pero estábamos en editor, salir suavemente
+                if (DOM.views.isabelle.classList.contains('active-view')) {
+                    exitExerciseView(false);
+                }
+            }
+        } else {
+            // Mostrar Intro
+            const wasInApp = DOM.screens.mainApp.classList.contains('active');
+            if (wasInApp) {
+                transitionToIntro(true);
+            } else {
+                showIntro(false); // Carga inicial
+            }
+        }
+    }
+
+    function findExerciseIdByName(name) {
+        // Búsqueda profunda en todos los temas
+        for (const [id, data] of Object.entries(window.EXERCISES_DATA || {})) {
+            const found = (data.exercises || []).find(e => e.name === name);
+            if (found) return found;
+        }
+        return null;
+    }
+
+    window.addEventListener('hashchange', router);
+
+    // Navegar atrás (Multinivel)
+    DOM.globalBack.addEventListener('click', () => {
+        const hash = window.location.hash;
+        if (DOM.views.isabelle.classList.contains('active-view')) {
+            // Si estamos en ejercicio, volver a la lista general de logica
+            window.location.hash = '#/logica';
+        } else {
+            // Si estamos en el menú de logica, volver al inicio
+            window.location.hash = '';
+        }
     });
 
 
@@ -229,7 +386,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Botón Guía/Wiki (Con Long Press para Admin Panel)
         const wikiBtn = document.createElement('button');
         wikiBtn.className = 'theme-btn active';
-        wikiBtn.textContent = 'Guía / Wiki';
+        wikiBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>';
+        wikiBtn.title = 'Guía / Wiki';
 
         let adminLongPressTimer;
         let isAdminFired = false;
@@ -252,10 +410,15 @@ document.addEventListener('DOMContentLoaded', () => {
         wikiBtn.onclick = (e) => {
             cancelLongPress();
             if (isAdminFired) {
-                // Si se acaba de activar el modo admin, evitar abrir la wiki
                 e.preventDefault();
                 return;
             }
+
+            // Si estamos en un modo editor, darle preferencia al botón de volver del sidebar
+            if (DOM.views.isabelle.classList.contains('active-view')) {
+                exitExerciseView();
+            }
+
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
             wikiBtn.classList.add('active');
             state.currentThemeId = null;
@@ -264,18 +427,23 @@ document.addEventListener('DOMContentLoaded', () => {
         frag.appendChild(wikiBtn);
 
         // 2. Lista de Temas
+        DOM.themeBtns = [];
         state.themes.forEach((themeId) => {
             const btn = document.createElement('button');
             btn.className = 'theme-btn';
-            btn.textContent = `Tema ${themeId}`;
+            btn.textContent = `T${themeId}`;
+            btn.title = `Tema ${themeId}`;
             btn.onclick = () => {
-                document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+                DOM.themeBtns.forEach(b => b.classList.remove('active'));
+                wikiBtn.classList.remove('active');
                 btn.classList.add('active');
                 state.currentThemeId = themeId;
                 renderThemeEjercicios();
             };
+            DOM.themeBtns.push(btn);
             frag.appendChild(btn);
         });
+        DOM.themeBtns.push(wikiBtn); // Track wikiBtn too
         
         DOM.themeNav.innerHTML = '';
         DOM.themeNav.appendChild(frag);
@@ -288,15 +456,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (DOM.views.exercises.classList.contains('active-view')) DOM.views.exercises.classList.replace('active-view', 'hidden-view');
         if (DOM.views.isabelle.classList.contains('active-view')) DOM.views.isabelle.classList.replace('active-view', 'hidden-view');
         
-        const adminView = document.getElementById('admin-view');
-        if (adminView && adminView.classList.contains('active-view')) adminView.classList.replace('active-view', 'hidden-view');
+        if (DOM.adminView && DOM.adminView.classList.contains('active-view')) DOM.adminView.classList.replace('active-view', 'hidden-view');
         
         DOM.views.wiki.classList.remove('hidden-view');
         DOM.views.wiki.classList.add('active-view');
 
         DOM.views.wiki.animate([
-            { opacity: 0, transform: 'translateY(10px)' },
-            { opacity: 1, transform: 'translateY(0)' }
+            { opacity: 0, transform: 'translate3d(0, 10px, 0)' },
+            { opacity: 1, transform: 'translate3d(0, 0, 0)' }
         ], { duration: 400, easing: 'ease-out' });
     }
 
@@ -306,8 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (DOM.views.wiki.classList.contains('active-view')) DOM.views.wiki.classList.replace('active-view', 'hidden-view');
         if (DOM.views.isabelle.classList.contains('active-view')) DOM.views.isabelle.classList.replace('active-view', 'hidden-view');
         
-        const adminView = document.getElementById('admin-view');
-        if (adminView && adminView.classList.contains('active-view')) adminView.classList.replace('active-view', 'hidden-view');
+        if (DOM.adminView && DOM.adminView.classList.contains('active-view')) DOM.adminView.classList.replace('active-view', 'hidden-view');
         
         DOM.views.exercises.classList.remove('hidden-view');
         DOM.views.exercises.classList.add('active-view');
@@ -324,36 +490,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
         exEntries.forEach(([exKey, exData]) => {
             const card = document.createElement('div');
-            card.className = 'exercise-card';
+            card.className = 'exercise-card liquidGlass-wrapper';
             const num = exKey.replace('exe', '');
             
             card.innerHTML = `
-                <div class="card-content">
+                <div class="liquidGlass-effect"></div>
+                <div class="liquidGlass-tint"></div>
+                <div class="liquidGlass-shine"></div>
+                <div class="liquidGlass-text card-content">
                     <h4>${num.padStart(2, '0')}</h4>
                 </div>
             `;
             
-            // Animación Holográfica 3D (movimiento del ratón)
+            // Animación Holográfica 3D Eficiente
+            let cardRect = null;
+            card.addEventListener("pointerenter", () => {
+                cardRect = card.getBoundingClientRect();
+            });
+
             card.addEventListener("pointermove", (e) => {
-                const rect = card.getBoundingClientRect();
-                const hw = rect.width / 2;
-                const hh = rect.height / 2;
-                const ratioX = (e.clientX - (rect.x + hw)) / hw;
-                const ratioY = (e.clientY - (rect.y + hh)) / hh;
-                // Guardamos los ratios como CSS Variables locales al card
+                if (!cardRect) return;
+                const hw = cardRect.width / 2;
+                const hh = cardRect.height / 2;
+                const ratioX = (e.clientX - (cardRect.x + hw)) / hw;
+                const ratioY = (e.clientY - (cardRect.y + hh)) / hh;
+                
                 card.style.setProperty("--ratio-x", ratioX);
                 card.style.setProperty("--ratio-y", ratioY);
                 card.style.setProperty("--correction", "0%");
-            });
+            }, { passive: true });
             
             card.addEventListener("pointerleave", () => {
-                // Resteable al estado reposo (sin rotación)
+                cardRect = null;
                 card.style.setProperty("--ratio-x", 0);
                 card.style.setProperty("--ratio-y", 0);
                 card.style.setProperty("--correction", "100%");
             });
             
-            card.onclick = () => openIsabelleView(exData);
+            card.onclick = () => {
+                window.location.hash = `#/logica/${exData.name}`;
+            };
             frag.appendChild(card);
         });
 
@@ -362,8 +538,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Pequeño fade in de los ejercicios
         DOM.exercisesGrid.animate([
-            { opacity: 0, transform: 'translateY(10px)' },
-            { opacity: 1, transform: 'translateY(0)' }
+            { opacity: 0, transform: 'translate3d(0, 10px, 0)' },
+            { opacity: 1, transform: 'translate3d(0, 0, 0)' }
         ], { duration: 400, easing: 'ease-out' });
     }
 
@@ -371,7 +547,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. VISTA ISABELLE (MOTOR)
     // ==========================================
 
-    function openIsabelleView(exMetadata) {
+    function openIsabelleView(exMetadata, updateHistory = true) {
+        if (updateHistory) window.location.hash = `#/logica/${exMetadata.name}`;
+        
         const proofId = exMetadata.name;
         const proofData = state.proofs[proofId];
 
@@ -397,16 +575,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (adminView && adminView.classList.contains('active-view')) adminView.classList.replace('active-view', 'hidden-view');
 
         DOM.views.isabelle.classList.replace('hidden-view', 'active-view');
-        
+        // Mantener global header pero limpio de back-mode experimental anterior
+        DOM.globalHeader.classList.remove('hidden-element');
+
         // Reset botones de icono
         DOM.isabelle.btnNext.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
     }
 
-    DOM.isabelle.btnBack.addEventListener('click', () => {
+    function exitExerciseView(updateHistory = true) {
+        if (updateHistory) window.location.hash = '#/logica';
         DOM.views.isabelle.classList.replace('active-view', 'hidden-view');
         DOM.views.exercises.classList.replace('hidden-view', 'active-view');
         state.currentExercise = null;
-    });
+    }
+
+    // El listener ya no es necesario sobre btnBack porque ya no existe en el DOM
+    // Pero mantenemos la lógica para cuando se llama desde otros sitios (como sidebar)
 
     // Highlighter Ultra-ligero
     function highlightSyntax(text, highlights = []) {
@@ -507,6 +691,22 @@ document.addEventListener('DOMContentLoaded', () => {
             DOM.isabelle.btnPrev.disabled = true;
         }
     });
+
+    // Navegación suave con rueda del ratón dentro del editor
+    let lastWheelTime = 0;
+    const WHEEL_THROTTLE_MS = 220;
+    document.addEventListener('wheel', (e) => {
+        if (!DOM.views.isabelle.classList.contains('active-view')) return;
+        const now = Date.now();
+        if (now - lastWheelTime < WHEEL_THROTTLE_MS) return;
+        lastWheelTime = now;
+
+        if (e.deltaY > 0) {
+            DOM.isabelle.btnNext.click();
+        } else if (e.deltaY < 0) {
+            DOM.isabelle.btnPrev.click();
+        }
+    }, { passive: true });
 
     // ==========================================
     // 4. ADMIN PANEL (GitHub API - CRUD Visual)
@@ -980,7 +1180,7 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
                 e.preventDefault();
                 DOM.isabelle.btnPrev.click();
             } else if (e.key === 'Escape') {
-                DOM.isabelle.btnBack.click();
+                exitExerciseView();
             }
         }
     });

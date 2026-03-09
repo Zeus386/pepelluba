@@ -10,10 +10,11 @@
     --c-accent-dark: #A59B7E;
     
     /* Variables de UI */
-    --sidebar-width: 280px;
+    --sidebar-width: 140px;
     --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-smooth: 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     --shadow-soft: 0 10px 40px rgba(0,0,0,0.05);
+
 
     /* Switch Variables */
     --light-switch: 95;
@@ -21,6 +22,10 @@
     --light-switch-top: 75;
     --light-switch-bottom: 95;
     --shadow-opacity: 0.2;
+
+    /* Background parallax */
+    --bg-x: 0px;
+    --bg-y: 0px;
 }
 
 body.dark-mode, html.dark-mode-preload body {
@@ -73,13 +78,33 @@ html.direct-logica #global-header.hidden-element {
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: var(--c-bg);
     color: var(--c-text-main);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     overflow: hidden; /* Control total del layout */
     width: 100vw;
     height: 100vh;
+    
+    /* Subtle plant background */
+    background-color: var(--c-bg);
+    background-image: url("https://static.vecteezy.com/system/resources/previews/056/652/082/non_2x/hand-drawn-white-flower-seamless-pattern-floral-repeating-wallpaper-for-textile-design-fabric-print-wrapping-paper-cute-daisy-flowers-on-blue-background-repeated-ditsy-texture-vector.jpg");
+    background-size: 300px;
+    background-repeat: repeat;
+    background-position: calc(50% + var(--bg-x)) calc(50% + var(--bg-y));
+}
+
+/* Pseudo-element to control background opacity independently */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--c-bg);
+    opacity: 0.95; /* Makes the pattern almost invisible */
+    z-index: -1;
+    pointer-events: none;
 }
 
 /* ==========================================
@@ -100,30 +125,14 @@ body {
 
 /* Global Header */
 .global-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 4rem;
-    z-index: 1000;
-    pointer-events: none; /* Let clicks pass through empty spaces */
-}
-
-.global-header > * {
-    pointer-events: auto; /* Re-enable clicks on header content */
-}
-
-.header-spacer {
-    width: 48px; /* Balance for the back button */
+    transition: opacity 0.8s var(--transition-smooth), transform 0.8s var(--transition-smooth);
 }
 
 .hidden-element {
     opacity: 0 !important;
     pointer-events: none !important;
+    transform: translateY(-20px) scale(0.95);
+    filter: blur(10px);
 }
 
 .icon-btn.top-nav {
@@ -217,14 +226,32 @@ p#sub-text {
 /* ==========================================
    LIGHT SWITCH (Theme Toggle)
    ========================================== */
-.light-switch-wrapper {
+.light-switch-wrapper.intro-switch {
     position: absolute;
-    top: 2rem;
+    top: 2.5rem;
     right: 4rem;
     z-index: 2000;
 }
 
-input#theme-toggle {
+.light-switch-wrapper.sidebar-switch {
+    position: relative;
+    z-index: 10;
+    margin-top: 4px;
+}
+
+.sidebar-divider {
+    width: 24px;
+    height: 1.5px;
+    background: rgba(0,0,0,0.08); /* Sutil divisor estilo macOS */
+    border-radius: 1px;
+    margin: 6px 0;
+}
+
+body.dark-mode .sidebar-divider {
+    background: rgba(255,255,255,0.12);
+}
+
+input.theme-toggle {
     height: 0;
     width: 0;
     opacity: 0;
@@ -232,11 +259,16 @@ input#theme-toggle {
 }
 
 .light-switch {
-    height: 44px;
-    width: 44px;
+    height: 40px;
+    width: 40px;
     position: relative;
     display: block;
     cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 2.2);
+}
+
+.light-switch:hover {
+    transform: scale(1.1);
 }
 
 .light-switch:before {
@@ -277,62 +309,256 @@ input#theme-toggle {
    ========================================== */
 #main-app {
     display: grid;
-    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-columns: 1fr;
     height: 100vh;
     opacity: 0; /* Inicia oculto para la transición de entrada */
-}
-
-/* Sidebar */
-#sidebar {
-    background-color: var(--c-bg-alt);
-    border-right: 1px solid rgba(0,0,0,0.05);
-    display: flex;
-    flex-direction: column;
-    padding: 6rem 2rem 3rem 2rem;
-}
-
-.sidebar-header {
-    display: none; /* Titulo de lógica eliminado del sidebar */
-}
-
-#theme-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.theme-btn {
-    background: none;
-    border: none;
-    text-align: left;
-    font-size: 1.1rem;
-    color: var(--c-text-muted);
-    cursor: pointer;
-    transition: color var(--transition-fast);
-    padding: 0.5rem 0;
-    font-family: 'Inter', sans-serif;
     position: relative;
 }
 
-.theme-btn.active {
-    color: var(--c-text-main);
-    font-weight: 500;
-}
-
-.theme-btn.active::before {
-    content: '';
-    position: absolute;
-    left: -1.5rem;
+/* Sidebar — floats over main content so backdrop-filter can see through */
+#sidebar {
+    position: fixed;
+    left: 1.5rem;
     top: 50%;
     transform: translateY(-50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: var(--c-text-main);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+}
+
+/* ==========================================
+   LIQUID GLASS (reference-accurate)
+   ========================================== */
+.liquidGlass-wrapper {
+    position: relative;
+    display: flex;
+    font-weight: 600;
+    overflow: hidden;
+    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2);
+}
+
+.liquidGlass-effect {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    filter: url(#glass-distortion);
+    overflow: hidden;
+}
+
+.liquidGlass-tint {
+    z-index: 1;
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.45);
+}
+
+body.dark-mode .liquidGlass-tint {
+    /* Un poco más clara para que el cristal se note de verdad en oscuro */
+    background: rgba(55, 55, 55, 0.7);
+}
+
+.liquidGlass-shine {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
+                inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+body.dark-mode .liquidGlass-shine {
+    box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.2),
+                inset -1px -1px 1px 1px rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.liquidGlass-text {
+    z-index: 3;
+    position: relative;
+}
+
+/* Dock shape — applied to wrapper AND all child divs (per reference note) */
+.sidebar-dock,
+.sidebar-dock > div {
+    border-radius: 2rem;
+}
+
+.sidebar-dock {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+}
+
+.sidebar-dock-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 0.25rem;
+}
+
+/* ==========================================
+   THEME BUTTONS (macOS app-icon style)
+   ========================================== */
+#theme-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+}
+
+.theme-btn {
+    background: linear-gradient(145deg, #e8e4df, #d4cfc8);
+    border: none;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #5a5549;
+    cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2), 
+                opacity 0.4s ease, 
+                box-shadow 0.4s ease, 
+                background 0.4s ease;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    will-change: transform, box-shadow;
+}
+
+body.dark-mode .theme-btn {
+    background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+    color: #c8c0b4;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
 .theme-btn:hover {
+    transform: scale(0.92);
+    transform-origin: center center;
+}
+
+.theme-btn.active {
+    background: linear-gradient(145deg, var(--c-text-main), #333);
+    color: var(--c-bg);
+    transform: scale(1.05);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+}
+
+/* En oscuro, el tema activo destaca mucho más (pastilla clara claramente diferenciada) */
+body.dark-mode .theme-btn.active {
+    background: linear-gradient(145deg, #f5f0e2, #c7b894);
+    color: #1b1b1b;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.7), 0 10px 30px rgba(0,0,0,0.8);
+}
+
+/* Liquid Back Mode Transition - Softer, non-aggressive color */
+.theme-btn.back-mode {
+    background: linear-gradient(145deg, var(--c-accent), var(--c-accent-dark)) !important;
+    color: white !important;
+    transform: rotate(-360deg) scale(1.1);
+    box-shadow: 0 4px 15px rgba(212, 201, 168, 0.4);
+}
+
+.theme-btn svg {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2);
+}
+
+.theme-btn.back-mode svg {
+    transform: scale(1.2);
+}
+
+body.dark-mode .theme-btn.back-mode {
+    background: linear-gradient(145deg, #a59b7e, #8a7d66) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.global-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100px; /* Standardize height for art homogeneity */
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    z-index: 1001; /* Above all views */
+    pointer-events: none; /* Let clicks feel "background-like" except for the button */
+}
+
+#global-back {
+    pointer-events: auto;
+    background: transparent;
+    border: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--c-text-muted);
+    cursor: pointer;
+    transition: all 0.5s var(--transition-smooth);
+    margin-top: 1.5rem; 
+    margin-left: 0.5rem;
+}
+
+#global-back svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.4s var(--transition-smooth);
+}
+
+#global-back:hover svg {
+    transform: translateX(-3px);
+}
+
+#global-back:hover {
     color: var(--c-text-main);
+}
+
+#global-back span {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    position: relative;
+}
+
+#global-back span::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    background: currentColor;
+    bottom: -4px;
+    left: 0;
+    transition: width 0.4s var(--transition-smooth);
+}
+
+#global-back:hover span::after {
+    width: 100%;
+}
+
+#header-text { display: none; } /* Clean artistic look, no redundant @pepelluba here */
+
+
+/* First button (Wiki) gets a distinct accent color */
+.theme-btn:first-child {
+    background: linear-gradient(145deg, #c9b896, #a89978);
+    color: #fff;
+}
+
+body.dark-mode .theme-btn:first-child {
+    background: linear-gradient(145deg, #8a7d66, #6b604d);
+    color: #f0ebe5;
 }
 
 /* Main Content Area */
@@ -345,13 +571,66 @@ input#theme-toggle {
 .view {
     position: absolute;
     top: 0;
-    left: 0;
-    width: 100%;
+    left: 7rem;
+    width: calc(100% - 7rem);
     height: 100%;
-    padding: 4rem;
+    padding: 0 3rem 1.5rem 0.5rem;
     opacity: 0;
     pointer-events: none;
-    transition: opacity var(--transition-smooth);
+    transition: opacity var(--transition-smooth), transform var(--transition-smooth);
+    will-change: opacity, transform;
+}
+
+.section-header, .isabelle-header {
+    height: 100px; /* Matched to global header height! */
+    display: flex;
+    flex-direction: column; /* Allow progress bar below or centering */
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(0,0,0,0.02);
+    position: sticky;
+    top: 0;
+    background: transparent;
+    z-index: 100;
+}
+
+body.dark-mode .section-header, body.dark-mode .isabelle-header {
+    border-bottom-color: rgba(255,255,255,0.02);
+}
+
+.section-header h3, #exercise-title {
+    font-size: 1rem !important; /* Artistically small, non-obtrusive */
+    font-family: 'Outfit', sans-serif;
+    color: var(--c-text-muted);
+    letter-spacing: 2px;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.isabelle-header {
+    gap: 12px; /* Increased gap for better balance */
+}
+
+.progress-bar-container {
+    width: 280px; /* Slightly wider for the centered look */
+    height: 4px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    margin: 0 auto;
+}
+
+body.dark-mode .progress-bar-container {
+    background: rgba(255,255,255,0.05);
+}
+
+#progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--c-accent-dark);
+    transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.2);
 }
 
 .view.active-view {
@@ -360,13 +639,14 @@ input#theme-toggle {
 }
 
 .section-header {
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
 }
 
 .section-header h3 {
-    font-size: 2.5rem;
-    font-weight: 300;
-    letter-spacing: -1px;
+    font-size: 1.8rem; /* Smaller, matches isabelle title homogeneity */
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    color: var(--c-text-main);
 }
 
 /* Grid Ejercicios */
@@ -377,15 +657,14 @@ input#theme-toggle {
     perspective: 1000px; /* Requisito para el efecto 3D holográfico */
 }
 
-/* TARJETAS DE EJERCICIOS - HOLOGRÁFICAS (3D) */
+/* TARJETAS DE EJERCICIOS - HOLOGRÁFICAS (3D) Y LIQUID GLASS */
 .exercise-card {
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.02);
     border-radius: 20px;
     padding: 2.5rem;
     text-align: center;
     cursor: pointer;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.03);
+    background: transparent;
+    border: none;
     /* Configuracion 3D Holografica */
     position: relative;
     overflow: hidden;
@@ -393,14 +672,20 @@ input#theme-toggle {
     --ratio-y: 0;
     --correction: 100%;
     transform-style: preserve-3d;
-    transition: transform 0.1s linear, box-shadow var(--transition-fast);
-    transform: rotateY(calc(-20deg * var(--ratio-x))) rotateX(calc(20deg * var(--ratio-y))) scale(1);
+    backface-visibility: hidden; /* Prevent flickering */
+    transition: transform 0.1s linear, box-shadow var(--transition-fast), opacity var(--transition-fast);
+    transform: translate3d(0,0,0) rotateY(calc(-20deg * var(--ratio-x))) rotateX(calc(20deg * var(--ratio-y))) scale(1);
+    will-change: transform;
 }
 
 .exercise-card:hover {
-    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
     transform: rotateY(calc(-20deg * var(--ratio-x))) rotateX(calc(20deg * var(--ratio-y))) scale(1.02);
     --correction: 0%;
+}
+
+body.dark-mode .exercise-card:hover .liquidGlass-shine {
+    box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.25),
+                inset -1px -1px 1px 1px rgba(255, 255, 255, 0.25);
 }
 
 /* El contenido superior (títulos y tal) se empuja hacia adelante en 3D! */
@@ -437,61 +722,55 @@ input#theme-toggle {
     padding: 0;
 }
 
-.isabelle-header {
-    display: flex;
-    align-items: center;
-    padding: 2.5rem 4rem;
-    border-bottom: 1px solid rgba(0,0,0,0.03);
-    background: var(--c-bg);
-    z-index: 10;
-}
-
-.icon-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--c-text-muted);
-    margin-right: 2rem;
-    transition: color var(--transition-fast);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.icon-btn:hover { color: var(--c-text-main); }
-
-#exercise-title {
-    font-family: 'Outfit', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 400;
-}
-
+/* Isabelle specific header components (Unified with Section headers) */
 .progress-bar-container {
-    margin-left: auto;
-    width: 200px;
-    height: 2px;
+    width: 240px; /* Standard artistic width */
+    height: 3px;
     background: rgba(0,0,0,0.05);
-    border-radius: 2px;
+    border-radius: 4px;
     overflow: hidden;
+    position: relative;
+    margin: 0 auto; /* CENTER it! */
+}
+
+body.dark-mode .progress-bar-container {
+    background: rgba(255,255,255,0.05);
 }
 
 #progress-bar {
     height: 100%;
     width: 0%;
-    background: var(--c-text-main);
-    transition: width var(--transition-fast);
+    background: var(--c-accent-dark);
+    transition: width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1);
 }
 
 .isabelle-workspace {
     display: flex;
     flex: 1;
     overflow: hidden;
+    padding: 2rem; /* Increased padding for elegance */
+    gap: 2rem;
+    /* Removed negative margin: homogeneity focus */
 }
 
 .panel {
     flex: 1;
     overflow-y: auto;
-    padding: 4rem;
+    padding: 2.5rem;
+    border-radius: 24px;
+    border: 1px solid rgba(0,0,0,0.03);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    contain: paint; /* Optimization: isolate paint */
+    will-change: transform, opacity;
+}
+
+body.dark-mode .panel {
+    /* Misma sensación de vidrio en oscuro: un poco de opacidad, no bloque negro */
+    background: rgba(20, 20, 20, 0.88);
+    border-color: rgba(255,255,255,0.08);
+    box-shadow: 0 18px 50px rgba(0,0,0,0.8);
 }
 
 /* Custom Scrollbar minimalista */
@@ -501,7 +780,13 @@ input#theme-toggle {
 
 .code-panel {
     border-right: 1px solid rgba(0,0,0,0.05);
-    background: #fff;
+    /* Panel de código con ligera opacidad sobre el vidrio */
+    background: rgba(255,255,255,0.92);
+}
+
+body.dark-mode .code-panel {
+    border-right: 1px solid rgba(255,255,255,0.10);
+    background: rgba(15,15,15,0.92);
 }
 
 .code-font {
@@ -513,7 +798,7 @@ input#theme-toggle {
 
 .isabelle-item {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translate3d(0, 10px, 0);
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
@@ -538,7 +823,12 @@ input#theme-toggle {
 
 .explanation-panel {
     position: relative;
-    background: var(--c-bg);
+    /* Usa el mismo tipo de vidrio que el resto del panel */
+    background: rgba(255,255,255,0.88);
+}
+
+body.dark-mode .explanation-panel {
+    background: rgba(18,18,18,0.9);
 }
 
 h4 {
@@ -746,9 +1036,14 @@ body.dark-mode .control-btn.primary:hover {
    DARK MODE ADJUSTMENTS
    ========================================== */
 body.dark-mode #sidebar { border-color: rgba(255,255,255,0.05); }
-body.dark-mode .isabelle-header { border-color: rgba(255,255,255,0.05); }
-body.dark-mode .code-panel { border-color: rgba(255,255,255,0.05); background: #222; }
-body.dark-mode .exercise-card { background: #252525; border-color: rgba(255,255,255,0.05); }
+
+/* Las tarjetas de ejercicio mantienen el efecto de vidrio también en oscuro
+   (la apariencia se controla con liquidGlass-*) */
+body.dark-mode .exercise-card {
+    background: transparent;
+    border-color: rgba(255,255,255,0.1);
+}
+
 body.dark-mode .hypothesis-box { background: #2A2A2A; border-color: rgba(255,255,255,0.05); }
 body.dark-mode .control-btn { background: #2A2A2A; border-color: rgba(255,255,255,0.1); color: var(--c-text-main); }
 body.dark-mode .code-font { color: #DDDDDD; }
@@ -786,8 +1081,7 @@ body.dark-mode .wiki-code-block { background: rgba(255,255,255,0.05); }
     z-index: 999999;
     mix-blend-mode: difference;
     transform: translate(-50%, -50%);
-    transition: width 0.2s cubic-bezier(0.22, 1, 0.36, 1), height 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: transform, left, top, width, height;
+    transition: width 0.2s ease, height 0.2s ease;
 }
 
 #custom-cursor.hover {

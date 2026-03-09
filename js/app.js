@@ -522,14 +522,15 @@ document.addEventListener('DOMContentLoaded', () => {
         adminDOM.view.classList.add('active-view');
         adminDOM.view.animate([{opacity: 0}, {opacity: 1}], {duration: 300});
 
-        // Cargar credenciales guardadas
+        // Pre-rellenar datos conocidos + cargar token guardado
+        adminDOM.ghUser.value = 'Zeus386';
+        adminDOM.ghRepo.value = 'pepelluba';
+        
         const savedCreds = localStorage.getItem('pepeweb_gh_creds');
         if (savedCreds) {
             try {
                 const creds = JSON.parse(savedCreds);
-                adminDOM.ghUser.value = creds.user || '';
-                adminDOM.ghRepo.value = creds.repo || '';
-                adminDOM.ghToken.value = creds.token || '';
+                if (creds.token) adminDOM.ghToken.value = creds.token;
                 adminDOM.ghRemember.checked = true;
             } catch (e) {}
         }

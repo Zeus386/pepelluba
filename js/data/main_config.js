@@ -23,6 +23,7 @@ const EXERCISES_DATA = {
     "2": {
         title: "Tema 2: Semántica y Tablas de Verdad",
         exercises: {
+            "exe1": { title: "AAA", name: "2_1", defaultMethod: "AA" },
         }
     },
     "3": {

@@ -1,0 +1,886 @@
+/* css/estilo.css - Optimizado para GPU y renderizado rápido */
+
+:root {
+    /* Paleta Kanye / Minimalista Beige */
+    --c-bg: #FAF8F5; /* Fondo crudo/beige */
+    --c-bg-alt: #F1EFEA; /* Beige ligeramente más oscuro para paneles */
+    --c-text-main: #1C1C1C; /* Casi negro para máximo contraste pero suave */
+    --c-text-muted: #737373; /* Gris medio */
+    --c-accent: #D4C9A8; /* Tono dorado/beige oscuro */
+    --c-accent-dark: #A59B7E;
+    
+    /* Variables de UI */
+    --sidebar-width: 280px;
+    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    --shadow-soft: 0 10px 40px rgba(0,0,0,0.05);
+
+    /* Switch Variables */
+    --light-switch: 95;
+    --light-switch-border: 75;
+    --light-switch-top: 75;
+    --light-switch-bottom: 95;
+    --shadow-opacity: 0.2;
+}
+
+body.dark-mode, html.dark-mode-preload body {
+    --c-bg: #1B1B1B; 
+    --c-bg-alt: #222222; 
+    --c-text-main: #F1EFEA; 
+    --c-text-muted: #888888; 
+    
+    --light-switch: 15;
+    --light-switch-border: 10;
+    --light-switch-top: 15;
+    --light-switch-bottom: 25;
+    --shadow-opacity: 0;
+    --shadow-soft: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+/* ==========================================
+   ANTI-FOUC (Carga Directa)
+   ========================================== */
+html.direct-logica #intro-screen {
+    display: none !important;
+}
+
+html.direct-logica #main-app {
+    display: grid !important; 
+    opacity: 0;
+    animation: fadeAppIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+html.direct-logica #global-header {
+    opacity: 0;
+    pointer-events: auto;
+    animation: fadeAppIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+html.direct-logica #global-header.hidden-element {
+    display: flex !important; /* Overriden so animation takes place */
+}
+
+@keyframes fadeAppIn {
+    to { opacity: 1; }
+}
+
+/* Reset Extremo */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--c-bg);
+    color: var(--c-text-main);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden; /* Control total del layout */
+    width: 100vw;
+    height: 100vh;
+}
+
+/* ==========================================
+   SISTEMA DE PANTALLAS (Views)
+   ========================================== */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    will-change: opacity, transform;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Global Header */
+.global-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4rem;
+    z-index: 1000;
+    pointer-events: none; /* Let clicks pass through empty spaces */
+}
+
+.global-header > * {
+    pointer-events: auto; /* Re-enable clicks on header content */
+}
+
+.header-spacer {
+    width: 48px; /* Balance for the back button */
+}
+
+.hidden-element {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.icon-btn.top-nav {
+    width: 48px;
+    height: 48px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    margin: 0;
+    transition: all var(--transition-fast);
+}
+
+.icon-btn.top-nav:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+.intro-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    position: relative;
+}
+
+h1#header-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    letter-spacing: -2px;
+    color: rgba(0, 0, 0, 0.06); /* Agujero sutil en modo claro */
+}
+
+body.dark-mode h1#header-text {
+    color: rgba(255, 255, 255, 0.06); /* Agujero sutil en modo oscuro */
+}
+
+h1#intro-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 5rem;
+    font-weight: 400;
+    letter-spacing: -2px;
+    margin-bottom: 0; /* Eliminado el margin-bottom para un centrado perfecto */
+    will-change: opacity, transform;
+    z-index: 2;
+}
+
+#intro-reveal {
+    position: absolute;
+    top: calc(50% + 60px); /* Situado exactamente debajo del texto que está en el 50% */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    will-change: opacity, transform;
+    z-index: 1;
+}
+
+button#logic-btn {
+    appearance: none;
+    border: none;
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+    background: transparent;
+    color: var(--c-text-main);
+    padding: 0.5rem 1rem;
+    font-size: 1.5rem;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+button#logic-btn:hover {
+    color: var(--c-accent-dark);
+    border-color: var(--c-accent-dark);
+}
+
+body.dark-mode button#logic-btn {
+    border-color: rgba(255,255,255,0.2);
+}
+
+p#sub-text {
+    font-size: 0.75rem;
+    color: var(--c-text-muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+/* ==========================================
+   LIGHT SWITCH (Theme Toggle)
+   ========================================== */
+.light-switch-wrapper {
+    position: absolute;
+    top: 2rem;
+    right: 4rem;
+    z-index: 2000;
+}
+
+input#theme-toggle {
+    height: 0;
+    width: 0;
+    opacity: 0;
+    position: absolute;
+}
+
+.light-switch {
+    height: 44px;
+    width: 44px;
+    position: relative;
+    display: block;
+    cursor: pointer;
+}
+
+.light-switch:before {
+    content: '';
+    position: absolute;
+    height: 30px;
+    width: 30px;
+    /* Uses dynamic HSL via custom properties to achieve the TV switch effect */
+    background: hsl(0, 0%, calc(var(--light-switch) * 1%));
+    box-shadow: 0 2px 2px 0 hsla(0, 0%, 35%, var(--shadow-opacity));
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 4px;
+}
+
+.light-switch:after {
+    content: '';
+    height: 12px;
+    width: 8px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid hsl(0, 0%, calc(var(--light-switch-border) * 1%));
+    /* Uses multiple calc strings to create the linear-gradient properly */
+    background: linear-gradient(
+        hsl(0, 0%, calc(var(--light-switch-top) * 1%)), 
+        hsl(0, 0%, calc(var(--light-switch-bottom) * 1%))
+    );
+    transition: border 0.2s ease, background 0.3s ease;
+    border-radius: 1px;
+}
+
+/* ==========================================
+   APLICACIÓN PRINCIPAL (CSS Grid Layer)
+   ========================================== */
+#main-app {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    height: 100vh;
+    opacity: 0; /* Inicia oculto para la transición de entrada */
+}
+
+/* Sidebar */
+#sidebar {
+    background-color: var(--c-bg-alt);
+    border-right: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    padding: 6rem 2rem 3rem 2rem;
+}
+
+.sidebar-header {
+    display: none; /* Titulo de lógica eliminado del sidebar */
+}
+
+#theme-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.theme-btn {
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 1.1rem;
+    color: var(--c-text-muted);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+    padding: 0.5rem 0;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+}
+
+.theme-btn.active {
+    color: var(--c-text-main);
+    font-weight: 500;
+}
+
+.theme-btn.active::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--c-text-main);
+}
+
+.theme-btn:hover {
+    color: var(--c-text-main);
+}
+
+/* Main Content Area */
+#content-area {
+    position: relative;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.view {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 4rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-smooth);
+}
+
+.view.active-view {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.section-header {
+    margin-bottom: 3rem;
+}
+
+.section-header h3 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    letter-spacing: -1px;
+}
+
+/* Grid Ejercicios */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2rem;
+    perspective: 1000px; /* Requisito para el efecto 3D holográfico */
+}
+
+/* TARJETAS DE EJERCICIOS - HOLOGRÁFICAS (3D) */
+.exercise-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.02);
+    border-radius: 20px;
+    padding: 2.5rem;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.03);
+    /* Configuracion 3D Holografica */
+    position: relative;
+    overflow: hidden;
+    --ratio-x: 0;
+    --ratio-y: 0;
+    --correction: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.1s linear, box-shadow var(--transition-fast);
+    transform: rotateY(calc(-20deg * var(--ratio-x))) rotateX(calc(20deg * var(--ratio-y))) scale(1);
+}
+
+.exercise-card:hover {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    transform: rotateY(calc(-20deg * var(--ratio-x))) rotateX(calc(20deg * var(--ratio-y))) scale(1.02);
+    --correction: 0%;
+}
+
+/* El contenido superior (títulos y tal) se empuja hacia adelante en 3D! */
+.exercise-card .card-content {
+    position: relative;
+    z-index: 3;
+    pointer-events: none;
+    transform: translateZ(30px); /* Esto hace que el texto "flote" encima de la tarjeta 3D */
+    transition: transform 0.1s linear;
+}
+
+.exercise-card h4 {
+    font-size: 2.8rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    letter-spacing: -1px;
+}
+
+.exercise-card p {
+    font-size: 0.8rem;
+    color: var(--c-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+
+/* ==========================================
+   ISABELLE EDITOR VIEW
+   ========================================== */
+#isabelle-view {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+.isabelle-header {
+    display: flex;
+    align-items: center;
+    padding: 2.5rem 4rem;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+    background: var(--c-bg);
+    z-index: 10;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--c-text-muted);
+    margin-right: 2rem;
+    transition: color var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover { color: var(--c-text-main); }
+
+#exercise-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+}
+
+.progress-bar-container {
+    margin-left: auto;
+    width: 200px;
+    height: 2px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+#progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--c-text-main);
+    transition: width var(--transition-fast);
+}
+
+.isabelle-workspace {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4rem;
+}
+
+/* Custom Scrollbar minimalista */
+.panel::-webkit-scrollbar { width: 6px; }
+.panel::-webkit-scrollbar-track { background: transparent; }
+.panel::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+
+.code-panel {
+    border-right: 1px solid rgba(0,0,0,0.05);
+    background: #fff;
+}
+
+.code-font {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: var(--c-text-muted);
+}
+
+.isabelle-item {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.isabelle-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.isabelle-item.active-line {
+    color: var(--c-text-main);
+    font-weight: 500;
+}
+
+/* Syntax Highlighting Minimalista */
+.keyword { color: #8A7A57; font-weight: 600; }
+.highlight { 
+    background-color: var(--c-accent); 
+    color: #fff;
+    padding: 0 4px;
+    border-radius: 2px;
+}
+
+.explanation-panel {
+    position: relative;
+    background: var(--c-bg);
+}
+
+h4 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--c-text-muted);
+    margin-bottom: 1.5rem;
+}
+
+.explanation-section {
+    margin-bottom: 4rem;
+}
+
+.text-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.hypothesis-box {
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+/* ==========================================
+   WIKI / GUIA COMPONENTES (VERTICAL + SCROLL INTERNO)
+   ========================================== */
+.wiki-content {
+    /* Custom Scrollbar for Wiki */
+    scrollbar-width: thin;
+    scrollbar-color: var(--c-accent) transparent;
+    /* Vertical simple — los items se apilan */
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+.wiki-content::-webkit-scrollbar {
+    width: 6px;
+}
+.wiki-content::-webkit-scrollbar-thumb {
+    background-color: var(--c-accent);
+    border-radius: 10px;
+}
+
+/* Contenedor Principal de un Tema */
+.wiki-grid-item {
+    background: var(--c-bg-alt);
+    border: 1px solid rgba(0,0,0,0.03);
+    border-radius: 20px;
+    padding: 2rem;
+    transition: box-shadow var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.wiki-grid-item:hover {
+    box-shadow: var(--shadow-soft);
+}
+
+.wiki-item-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--c-text-main);
+    margin-bottom: 0.5rem;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.wiki-item-desc {
+    font-size: 0.95rem;
+    color: var(--c-text-muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+/* Sub-Bloques Interactivos (details/summary) */
+.wiki-subcard {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    transition: all var(--transition-fast);
+}
+
+.wiki-subcard[open] {
+    border-color: rgba(0,0,0,0.15);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.wiki-subsummary {
+    padding: 1rem 1.2rem;
+    font-size: 1.05rem;
+    font-weight: 500;
+    cursor: pointer;
+    list-style: none; /* Hide default arrow */
+    position: relative;
+    user-select: none;
+    transition: background var(--transition-fast);
+    color: var(--c-accent-dark);
+}
+
+.wiki-subsummary::-webkit-details-marker {
+    display: none;
+}
+
+.wiki-subsummary::after {
+    content: '+';
+    position: absolute;
+    right: 1.2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    font-weight: 300;
+    transition: transform var(--transition-fast);
+    font-family: 'Inter', sans-serif;
+    color: var(--c-text-muted);
+}
+
+.wiki-subcard[open] .wiki-subsummary::after {
+    content: '−';
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.wiki-subsummary:hover {
+    background: rgba(0,0,0,0.015);
+}
+
+.wiki-subinner {
+    padding: 0 1.2rem 1.2rem 1.2rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--c-text-main);
+    animation: fadeInDown 0.25s ease-out forwards;
+}
+
+.wiki-code-block {
+    display: block;
+    font-family: monospace;
+    margin-top: 0.5rem;
+    color: var(--c-text-muted);
+    background: rgba(0,0,0,0.03);
+    padding: 0.8rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+.controls {
+    position: fixed;
+    bottom: 4rem;
+    right: 4rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.control-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: #fff;
+    color: var(--c-text-main);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-soft);
+}
+
+.control-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: transparent;
+    box-shadow: none;
+}
+
+.control-btn:not(:disabled):hover {
+    transform: scale(1.05);
+    border-color: var(--c-text-main);
+}
+
+.control-btn.primary {
+    background: var(--c-text-main);
+    color: var(--c-bg);
+    border-color: var(--c-text-main);
+}
+
+.control-btn.primary:hover {
+    background: #000;
+}
+
+body.dark-mode .control-btn.primary:hover {
+    background: #fff;
+}
+
+/* ==========================================
+   DARK MODE ADJUSTMENTS
+   ========================================== */
+body.dark-mode #sidebar { border-color: rgba(255,255,255,0.05); }
+body.dark-mode .isabelle-header { border-color: rgba(255,255,255,0.05); }
+body.dark-mode .code-panel { border-color: rgba(255,255,255,0.05); background: #222; }
+body.dark-mode .exercise-card { background: #252525; border-color: rgba(255,255,255,0.05); }
+body.dark-mode .hypothesis-box { background: #2A2A2A; border-color: rgba(255,255,255,0.05); }
+body.dark-mode .control-btn { background: #2A2A2A; border-color: rgba(255,255,255,0.1); color: var(--c-text-main); }
+body.dark-mode .code-font { color: #DDDDDD; }
+body.dark-mode .progress-bar-container { background: rgba(255,255,255,0.1); }
+body.dark-mode .icon-btn.top-nav { background: #2A2A2A; }
+
+/* Dark Mode: Wiki Components */
+body.dark-mode .wiki-grid-item { border-color: rgba(255,255,255,0.05); }
+body.dark-mode .wiki-subcard { background: #2A2A2A; border-color: rgba(255,255,255,0.05); }
+body.dark-mode .wiki-subcard[open] { border-color: rgba(255,255,255,0.15); }
+body.dark-mode .wiki-subsummary:hover { background: rgba(255,255,255,0.02); }
+body.dark-mode .wiki-code-block { background: rgba(255,255,255,0.05); }
+
+/* ==========================================
+   CUSTOM CURSOR
+   ========================================== */
+@media (pointer: fine) {
+    body, body * {
+        cursor: none !important;
+    }
+}
+
+#custom-cursor {
+    position: fixed;
+    top: -20px;
+    left: -20px;
+    width: 20px;
+    height: 20px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 999999;
+    mix-blend-mode: difference;
+    transform: translate(-50%, -50%);
+    transition: width 0.2s cubic-bezier(0.22, 1, 0.36, 1), height 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, left, top, width, height;
+}
+
+#custom-cursor.hover {
+    width: 45px;
+    height: 45px;
+}
+
+/* ==========================================
+   ADMIN PANEL (GitHub API)
+   ========================================== */
+.admin-container {
+    max-width: 600px; /* Centrado como columna estrecha rollo login clásico */
+    margin: 0 auto;
+}
+
+.admin-login-box, .admin-dashboard {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 20px;
+    padding: 3rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+    animation: fadeInDown 0.4s ease-out;
+}
+
+body.dark-mode .admin-login-box,
+body.dark-mode .admin-dashboard {
+    background: #252525;
+    border-color: rgba(255,255,255,0.05);
+}
+
+.admin-input-group {
+    margin-bottom: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.admin-input-group label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--c-text-muted);
+    font-weight: 500;
+}
+
+.admin-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 6px;
+    background: var(--c-bg);
+    color: var(--c-text-main);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color var(--transition-fast);
+}
+
+.admin-input:focus { border-color: var(--c-text-main); }
+
+body.dark-mode .admin-input {
+    background: #1B1B1B;
+    border-color: rgba(255,255,255,0.1);
+}
+
+.admin-textarea {
+    width: 100%;
+    height: 350px;
+    padding: 1rem;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 6px;
+    background: var(--c-bg);
+    color: var(--c-text-main);
+    resize: vertical;
+    outline: none;
+}
+
+body.dark-mode .admin-textarea {
+    background: #1B1B1B;
+    border-color: rgba(255,255,255,0.1);
+}
+
+.admin-btn {
+    height: 48px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.admin-msg {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    text-align: center;
+    min-height: 1.5rem;
+}
+
+.admin-msg.error { color: #d93025; }
+.admin-msg.success { color: #188038; }
+
+body.dark-mode .admin-msg.error { color: #f28b82; }
+body.dark-mode .admin-msg.success { color: #81c995; }

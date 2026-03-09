@@ -769,6 +769,9 @@ body.dark-mode .wiki-code-block { background: rgba(255,255,255,0.05); }
     body, body * {
         cursor: none !important;
     }
+    body.native-cursor, body.native-cursor * {
+        cursor: auto !important;
+    }
 }
 
 #custom-cursor {
@@ -884,3 +887,206 @@ body.dark-mode .admin-textarea {
 
 body.dark-mode .admin-msg.error { color: #f28b82; }
 body.dark-mode .admin-msg.success { color: #81c995; }
+
+/* ==========================================
+   ADMIN CRUD EDITOR
+   ========================================== */
+.adm-screen.hidden { display: none; }
+
+.adm-subtitle {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: -0.5px;
+    color: var(--c-text-main);
+    margin-bottom: 1.5rem;
+}
+
+.adm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.adm-theme-card {
+    background: var(--c-bg);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--c-text-main);
+    transition: all var(--transition-fast);
+}
+
+.adm-theme-card:hover {
+    border-color: var(--c-text-main);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    transform: translateY(-2px);
+}
+
+body.dark-mode .adm-theme-card {
+    background: #1B1B1B;
+    border-color: rgba(255,255,255,0.06);
+}
+
+.adm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.adm-ex-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--c-bg);
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    transition: all var(--transition-fast);
+}
+
+.adm-ex-item:hover {
+    border-color: rgba(0,0,0,0.1);
+}
+
+body.dark-mode .adm-ex-item {
+    background: #1B1B1B;
+    border-color: rgba(255,255,255,0.05);
+}
+
+.adm-ex-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.adm-ex-info strong {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 0.15rem;
+}
+
+.adm-ex-info span {
+    font-size: 0.8rem;
+    color: var(--c-text-muted);
+}
+
+.adm-ex-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.adm-ex-actions button {
+    background: none;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all var(--transition-fast);
+    color: var(--c-text-muted);
+}
+
+.adm-ex-actions button:hover {
+    border-color: var(--c-text-main);
+    color: var(--c-text-main);
+}
+
+.adm-ex-actions button.delete:hover {
+    border-color: #d93025;
+    color: #d93025;
+    background: rgba(217, 48, 37, 0.05);
+}
+
+body.dark-mode .adm-ex-actions button {
+    border-color: rgba(255,255,255,0.1);
+}
+
+/* Step cards in editor */
+.adm-step-card {
+    background: var(--c-bg);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+body.dark-mode .adm-step-card {
+    background: #1B1B1B;
+    border-color: rgba(255,255,255,0.06);
+}
+
+.adm-step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.adm-step-header strong {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    color: var(--c-accent-dark);
+}
+
+.adm-step-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--c-text-muted);
+    font-size: 1.1rem;
+    transition: color var(--transition-fast);
+}
+
+.adm-step-header button:hover { color: #d93025; }
+
+.adm-step-card textarea {
+    width: 100%;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 8px;
+    padding: 0.7rem;
+    background: var(--c-bg-alt);
+    color: var(--c-text-main);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    resize: vertical;
+    outline: none;
+    margin-bottom: 0.75rem;
+}
+
+.adm-step-card textarea:focus {
+    border-color: var(--c-text-main);
+}
+
+.adm-step-card textarea.code-font {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.85rem;
+}
+
+body.dark-mode .adm-step-card textarea {
+    background: #222;
+    border-color: rgba(255,255,255,0.08);
+}
+
+.adm-step-card label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--c-text-muted);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+

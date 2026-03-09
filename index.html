@@ -299,29 +299,65 @@
                         <p id="admin-auth-msg" class="admin-msg"></p>
                     </div>
 
-                    <!-- Dashboard / Editor -->
+                    <!-- Dashboard / Editor Visual CRUD -->
                     <div id="admin-dashboard" class="admin-dashboard hidden">
-                        <p style="margin-bottom: 1.5rem; color: var(--c-text-muted); font-size: 0.95rem;">
-                            Conectado como <strong id="admin-connected-user" style="color: var(--c-text-main);">...</strong>. Selecciona el archivo JS e inserta su nuevo contenido completo.
+                        <p style="margin-bottom: 1rem; color: var(--c-text-muted); font-size: 0.9rem;">
+                            Conectado como <strong id="admin-connected-user" style="color: var(--c-text-main);">...</strong>
                         </p>
-                        
-                        <div class="admin-input-group">
-                            <label>Archivo a Modificar</label>
-                            <select id="admin-file-select" class="admin-input">
-                                <option value="js/data/TEMA1.js">TEMA1.js</option>
-                                <option value="js/data/TEMA2.js">TEMA2.js</option>
-                                <option value="js/data/TEMA3.js">TEMA3.js</option>
-                                <option value="js/data/TEMA4.js">TEMA4.js</option>
-                                <option value="js/data/TEMA5.js">TEMA5.js</option>
-                                <option value="js/data/TEMA6.js">TEMA6.js</option>
-                                <option value="js/data/main_config.js">main_config.js</option>
-                            </select>
+
+                        <!-- Sub-Pantalla 1: Selector de Tema -->
+                        <div id="adm-themes" class="adm-screen">
+                            <h4 class="adm-subtitle">Selecciona un Tema</h4>
+                            <div id="adm-theme-list" class="adm-grid"></div>
                         </div>
 
-                        <textarea id="admin-code-input" class="admin-textarea code-font" placeholder="Pega aquí todo el contenido del archivo .js a reemplazar..."></textarea>
-                        
-                        <button id="admin-push-btn" class="control-btn primary admin-btn" style="width: 100%; border-radius: 8px; margin-top: 1.5rem;">Publicar en GitHub</button>
-                        <p id="admin-push-msg" class="admin-msg"></p>
+                        <!-- Sub-Pantalla 2: Lista de Ejercicios -->
+                        <div id="adm-exercises" class="adm-screen hidden">
+                            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+                                <button id="adm-back-themes" class="icon-btn" aria-label="Volver">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                                </button>
+                                <h4 class="adm-subtitle" id="adm-ex-title" style="margin:0;">Ejercicios</h4>
+                            </div>
+                            <div id="adm-ex-list" class="adm-list"></div>
+                            <button id="adm-new-ex" class="control-btn primary admin-btn" style="width:100%;border-radius:12px;margin-top:1.5rem;">
+                                ➕ Crear Nuevo Ejercicio
+                            </button>
+                        </div>
+
+                        <!-- Sub-Pantalla 3: Editor de Ejercicio -->
+                        <div id="adm-editor" class="adm-screen hidden" style="overflow-y:auto;max-height:calc(100vh - 280px);padding-right:0.5rem;">
+                            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+                                <button id="adm-back-exs" class="icon-btn" aria-label="Volver">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                                </button>
+                                <h4 class="adm-subtitle" id="adm-editor-title" style="margin:0;">Editor</h4>
+                            </div>
+
+                            <div class="admin-input-group">
+                                <label>Título del Ejercicio</label>
+                                <input type="text" id="adm-ex-titleinput" class="admin-input" placeholder="Ej: A ⟶ E, A ⊢ E">
+                            </div>
+                            <div class="admin-input-group">
+                                <label>Nombre Interno (ID único)</label>
+                                <input type="text" id="adm-ex-name" class="admin-input" placeholder="Ej: 1_1_auto">
+                            </div>
+                            <div class="admin-input-group">
+                                <label>Método por Defecto</label>
+                                <input type="text" id="adm-ex-method" class="admin-input" placeholder="Ej: Solución Automática (auto)">
+                            </div>
+
+                            <h4 class="adm-subtitle" style="margin-top:2rem;">Pasos de la Prueba</h4>
+                            <div id="adm-steps-container"></div>
+                            <button id="adm-add-step" class="control-btn admin-btn" style="width:100%;border-radius:12px;margin-top:1rem;">
+                                ➕ Añadir Paso
+                            </button>
+
+                            <button id="adm-save-ex" class="control-btn primary admin-btn" style="width:100%;border-radius:12px;margin-top:2rem;font-size:1rem;padding:1rem;">
+                                💾 Guardar y Publicar en GitHub
+                            </button>
+                            <p id="adm-save-msg" class="admin-msg"></p>
+                        </div>
                     </div>
                 </div>
             </section>

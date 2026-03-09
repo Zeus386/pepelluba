@@ -8,6 +8,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // ESTADOS Y REFERENCIAS AL DOM
     // ==========================================
+
+    // Merge admin changes from localStorage over original file data
+    (function mergeAdminCache() {
+        try {
+            const cachedConfig = localStorage.getItem('pepeweb_admin_config');
+            if (cachedConfig) {
+                const parsed = JSON.parse(cachedConfig);
+                window.EXERCISES_DATA = parsed;
+            }
+            const cachedProofs = localStorage.getItem('pepeweb_admin_proofs');
+            if (cachedProofs) {
+                const parsed = JSON.parse(cachedProofs);
+                Object.keys(parsed).forEach(k => {
+                    window[`TEMA${k}_PROOFS`] = parsed[k];
+                });
+            }
+        } catch(e) { console.warn('Admin cache parse error', e); }
+    })();
+
     const state = {
         themes: Object.keys(window.EXERCISES_DATA || {}).sort((a,b) => Number(a) - Number(b)),
         currentThemeId: null,
@@ -490,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 4. ADMIN PANEL (GitHub API)
+    // 4. ADMIN PANEL (GitHub API - CRUD Visual)
     // ==========================================
     const adminDOM = {
         view: document.getElementById('admin-view'),
@@ -503,166 +522,372 @@ document.addEventListener('DOMContentLoaded', () => {
         ghRemember: document.getElementById('gh-remember'),
         loginBtn: document.getElementById('admin-login-btn'),
         authMsg: document.getElementById('admin-auth-msg'),
-        
         connectedUser: document.getElementById('admin-connected-user'),
-        fileSelect: document.getElementById('admin-file-select'),
-        codeInput: document.getElementById('admin-code-input'),
-        pushBtn: document.getElementById('admin-push-btn'),
-        pushMsg: document.getElementById('admin-push-msg')
+        // CRUD screens
+        screenThemes: document.getElementById('adm-themes'),
+        screenExercises: document.getElementById('adm-exercises'),
+        screenEditor: document.getElementById('adm-editor'),
+        themeList: document.getElementById('adm-theme-list'),
+        exTitle: document.getElementById('adm-ex-title'),
+        exList: document.getElementById('adm-ex-list'),
+        newExBtn: document.getElementById('adm-new-ex'),
+        backThemes: document.getElementById('adm-back-themes'),
+        backExs: document.getElementById('adm-back-exs'),
+        editorTitle: document.getElementById('adm-editor-title'),
+        exTitleInput: document.getElementById('adm-ex-titleinput'),
+        exName: document.getElementById('adm-ex-name'),
+        exMethod: document.getElementById('adm-ex-method'),
+        stepsContainer: document.getElementById('adm-steps-container'),
+        addStepBtn: document.getElementById('adm-add-step'),
+        saveBtn: document.getElementById('adm-save-ex'),
+        saveMsg: document.getElementById('adm-save-msg')
     };
+
+    let admState = { themeId: null, exKey: null, isNew: false };
+
+    function admShowScreen(screen) {
+        [adminDOM.screenThemes, adminDOM.screenExercises, adminDOM.screenEditor].forEach(s => {
+            if (s) s.classList.add('hidden');
+        });
+        if (screen) screen.classList.remove('hidden');
+    }
 
     function openAdminView() {
         if (!adminDOM.view) return;
-        
         if (DOM.views.exercises.classList.contains('active-view')) DOM.views.exercises.classList.replace('active-view', 'hidden-view');
         if (DOM.views.isabelle.classList.contains('active-view')) DOM.views.isabelle.classList.replace('active-view', 'hidden-view');
         if (DOM.views.wiki.classList.contains('active-view')) DOM.views.wiki.classList.replace('active-view', 'hidden-view');
-        
         adminDOM.view.classList.remove('hidden-view');
         adminDOM.view.classList.add('active-view');
         adminDOM.view.animate([{opacity: 0}, {opacity: 1}], {duration: 300});
 
-        // Pre-rellenar datos conocidos + cargar token guardado
         adminDOM.ghUser.value = 'Zeus386';
         adminDOM.ghRepo.value = 'pepelluba';
-        
         const savedCreds = localStorage.getItem('pepeweb_gh_creds');
         if (savedCreds) {
-            try {
-                const creds = JSON.parse(savedCreds);
-                if (creds.token) adminDOM.ghToken.value = creds.token;
-                adminDOM.ghRemember.checked = true;
-            } catch (e) {}
+            try { const c = JSON.parse(savedCreds); if (c.token) adminDOM.ghToken.value = c.token; adminDOM.ghRemember.checked = true; } catch(e){}
         }
     }
 
     if (adminDOM.closeBtn) {
         adminDOM.closeBtn.addEventListener('click', () => {
             adminDOM.view.classList.replace('active-view', 'hidden-view');
-            openWikiView(); // Volver a la wiki al cerrar
+            openWikiView();
         });
     }
 
+    // GitHub helpers
+    function ghHeaders() {
+        return { 'Authorization': `token ${adminDOM.ghToken.value.trim()}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
+    }
+    function ghUrl(path) {
+        return `https://api.github.com/repos/${adminDOM.ghUser.value.trim()}/${adminDOM.ghRepo.value.trim()}/contents/${path}`;
+    }
+    function utf8ToBase64(str) { return window.btoa(unescape(encodeURIComponent(str))); }
+
+    async function ghReadFile(path) {
+        const res = await fetch(ghUrl(path) + '?ref=main', { headers: ghHeaders() });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return { content: decodeURIComponent(escape(atob(data.content.replace(/\n/g, '')))), sha: data.sha };
+    }
+
+    async function ghWriteFile(path, content) {
+        // Always read fresh SHA before writing to avoid stale SHA errors
+        const current = await ghReadFile(path);
+        const body = { message: `[Admin Panel] Update ${path.split('/').pop()}`, content: utf8ToBase64(content), branch: 'main' };
+        if (current && current.sha) body.sha = current.sha;
+        const res = await fetch(ghUrl(path), { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.message || 'Error writing to GitHub'); }
+        return true;
+    }
+
+    // Login
     if (adminDOM.loginBtn) {
         adminDOM.loginBtn.addEventListener('click', async () => {
             const user = adminDOM.ghUser.value.trim();
             const repo = adminDOM.ghRepo.value.trim();
             const token = adminDOM.ghToken.value.trim();
-
-            if (!user || !repo || !token) {
-                adminDOM.authMsg.className = 'admin-msg error';
-                adminDOM.authMsg.textContent = 'Rellena todos los campos vacíos.';
-                return;
-            }
-
-            adminDOM.authMsg.className = 'admin-msg';
-            adminDOM.authMsg.textContent = 'Verificando con GitHub...';
+            if (!user || !repo || !token) { adminDOM.authMsg.className = 'admin-msg error'; adminDOM.authMsg.textContent = 'Rellena todos los campos.'; return; }
+            adminDOM.authMsg.className = 'admin-msg'; adminDOM.authMsg.textContent = 'Verificando...';
             adminDOM.loginBtn.disabled = true;
-
             try {
-                // Verificar si repo local es accesible con token
-                const res = await fetch(`https://api.github.com/repos/${user}/${repo}`, {
-                    headers: { 'Authorization': `token ${token}` }
-                });
-
+                const res = await fetch(`https://api.github.com/repos/${user}/${repo}`, { headers: { 'Authorization': `token ${token}` } });
                 if (res.ok) {
-                    // Éxito: Guardar si marcó la casilla
-                    if (adminDOM.ghRemember.checked) {
-                        localStorage.setItem('pepeweb_gh_creds', JSON.stringify({ user, repo, token }));
-                    } else {
-                        localStorage.removeItem('pepeweb_gh_creds');
-                    }
-
+                    if (adminDOM.ghRemember.checked) localStorage.setItem('pepeweb_gh_creds', JSON.stringify({ token }));
+                    else localStorage.removeItem('pepeweb_gh_creds');
                     adminDOM.loginBox.classList.add('hidden');
                     adminDOM.dashboard.classList.remove('hidden');
                     adminDOM.connectedUser.textContent = `${user}/${repo}`;
-                } else {
-                    const errorObj = await res.json();
-                    throw new Error(errorObj.message || 'Denegado. Revisa tus credenciales.');
-                }
-            } catch (err) {
-                adminDOM.authMsg.className = 'admin-msg error';
-                adminDOM.authMsg.textContent = err.message || 'Error de conexión con la API.';
-            } finally {
-                adminDOM.loginBtn.disabled = false;
-            }
+                    admRenderThemes();
+                } else { throw new Error('Token inválido o repo no encontrado.'); }
+            } catch(err) { adminDOM.authMsg.className = 'admin-msg error'; adminDOM.authMsg.textContent = err.message; }
+            finally { adminDOM.loginBtn.disabled = false; }
         });
     }
 
-    // Encoder especial UTF8 a Base64 para GitHub
-    function utf8ToBase64(str) {
-        return window.btoa(unescape(encodeURIComponent(str)));
+    // Screen 1: Themes
+    function admRenderThemes() {
+        admShowScreen(adminDOM.screenThemes);
+        adminDOM.themeList.innerHTML = '';
+        const themes = window.EXERCISES_DATA || {};
+        Object.keys(themes).sort((a,b) => Number(a)-Number(b)).forEach(id => {
+            const card = document.createElement('div');
+            card.className = 'adm-theme-card';
+            card.textContent = `Tema ${id}`;
+            card.onclick = () => { admState.themeId = id; admRenderExercises(); };
+            adminDOM.themeList.appendChild(card);
+        });
     }
 
-    if (adminDOM.pushBtn) {
-        adminDOM.pushBtn.addEventListener('click', async () => {
-            const user = adminDOM.ghUser.value.trim();
-            const repo = adminDOM.ghRepo.value.trim();
-            const token = adminDOM.ghToken.value.trim();
-            const filePath = adminDOM.fileSelect.value;
-            const content = adminDOM.codeInput.value;
+    // Screen 2: Exercises list
+    function admRenderExercises() {
+        admShowScreen(adminDOM.screenExercises);
+        const themeData = window.EXERCISES_DATA[admState.themeId];
+        adminDOM.exTitle.textContent = themeData.title || `Tema ${admState.themeId}`;
+        adminDOM.exList.innerHTML = '';
 
-            if (!content) {
-                adminDOM.pushMsg.className = 'admin-msg error';
-                adminDOM.pushMsg.textContent = 'El contenido no puede estar vacío.';
-                return;
-            }
+        const entries = Object.entries(themeData.exercises || {}).sort((a,b) => parseInt(a[0].replace('exe','')) - parseInt(b[0].replace('exe','')));
+        if (entries.length === 0) {
+            adminDOM.exList.innerHTML = '<p style="color:var(--c-text-muted);font-style:italic;text-align:center;padding:2rem;">Sin ejercicios. Pulsa el botón de abajo para crear uno.</p>';
+        }
 
-            adminDOM.pushMsg.className = 'admin-msg';
-            adminDOM.pushMsg.textContent = `Buscando ${filePath} en GitHub...`;
-            adminDOM.pushBtn.disabled = true;
+        entries.forEach(([key, ex]) => {
+            const item = document.createElement('div');
+            item.className = 'adm-ex-item';
+            item.innerHTML = `
+                <div class="adm-ex-info">
+                    <strong>${key.replace('exe','')}. ${ex.title}</strong>
+                    <span>${ex.name} — ${ex.defaultMethod}</span>
+                </div>
+                <div class="adm-ex-actions">
+                    <button class="edit" title="Editar">✏️</button>
+                    <button class="delete" title="Borrar">🗑️</button>
+                </div>`;
+            item.querySelector('.edit').onclick = () => { admState.exKey = key; admState.isNew = false; admOpenEditor(ex); };
+            item.querySelector('.delete').onclick = () => admDeleteExercise(key, ex);
+            adminDOM.exList.appendChild(item);
+        });
+    }
+
+    if (adminDOM.backThemes) adminDOM.backThemes.addEventListener('click', admRenderThemes);
+    if (adminDOM.newExBtn) adminDOM.newExBtn.addEventListener('click', () => {
+        const entries = Object.keys(window.EXERCISES_DATA[admState.themeId].exercises || {});
+        const maxNum = entries.reduce((max, k) => Math.max(max, parseInt(k.replace('exe','')) || 0), 0);
+        admState.exKey = `exe${maxNum + 1}`;
+        admState.isNew = true;
+        admOpenEditor({ title: '', name: `${admState.themeId}_${maxNum+1}`, defaultMethod: '' });
+    });
+
+    // Screen 3: Editor
+    function admOpenEditor(ex) {
+        admShowScreen(adminDOM.screenEditor);
+        adminDOM.editorTitle.textContent = admState.isNew ? 'Crear Ejercicio' : `Editar ${admState.exKey.replace('exe', '')}`;
+        adminDOM.exTitleInput.value = ex.title;
+        adminDOM.exName.value = ex.name;
+        adminDOM.exMethod.value = ex.defaultMethod;
+        adminDOM.saveMsg.textContent = '';
+        adminDOM.stepsContainer.innerHTML = '';
+
+        // Load existing steps from proofs
+        const proofData = state.proofs[ex.name];
+        if (proofData && proofData.steps) {
+            proofData.steps.forEach(step => admAddStepUI(step));
+        } else if (!admState.isNew) {
+            // No steps loaded locally, show empty
+        }
+    }
+
+    function admAddStepUI(stepData = {}) {
+        const idx = adminDOM.stepsContainer.children.length + 1;
+        const card = document.createElement('div');
+        card.className = 'adm-step-card';
+        card.innerHTML = `
+            <div class="adm-step-header">
+                <strong>Paso ${idx}</strong>
+                <button title="Eliminar paso">✕</button>
+            </div>
+            <label>Código Isabelle</label>
+            <textarea class="code-font step-code" rows="3" placeholder="lemma ejercicio:\\n  assumes...">${stepData.code || ''}</textarea>
+            <label>Explicación</label>
+            <textarea class="step-explanation" rows="2" placeholder="Descripción paso a paso...">${stepData.explanation || ''}</textarea>
+            <label>Hipótesis Activas (separadas por coma)</label>
+            <textarea class="step-hyp" rows="1" placeholder="P ⟶ Q, P">${(stepData.activeHyp || []).join(', ')}</textarea>
+            <label>Highlights (separadas por coma)</label>
+            <textarea class="step-highlights" rows="1" placeholder="auto, impI">${(stepData.highlights || []).join(', ')}</textarea>`;
+        card.querySelector('.adm-step-header button').onclick = () => { card.remove(); admRenumberSteps(); };
+        adminDOM.stepsContainer.appendChild(card);
+    }
+
+    function admRenumberSteps() {
+        Array.from(adminDOM.stepsContainer.children).forEach((card, i) => {
+            card.querySelector('.adm-step-header strong').textContent = `Paso ${i + 1}`;
+        });
+    }
+
+    if (adminDOM.addStepBtn) adminDOM.addStepBtn.addEventListener('click', () => admAddStepUI());
+    if (adminDOM.backExs) adminDOM.backExs.addEventListener('click', admRenderExercises);
+
+    // SAVE: Build files and push to GitHub
+    if (adminDOM.saveBtn) {
+        adminDOM.saveBtn.addEventListener('click', async () => {
+            const title = adminDOM.exTitleInput.value.trim();
+            const name = adminDOM.exName.value.trim();
+            const method = adminDOM.exMethod.value.trim();
+            if (!title || !name || !method) { adminDOM.saveMsg.className = 'admin-msg error'; adminDOM.saveMsg.textContent = 'Rellena título, nombre y método.'; return; }
+
+            // Collect steps from UI
+            const stepCards = adminDOM.stepsContainer.querySelectorAll('.adm-step-card');
+            const steps = Array.from(stepCards).map(card => ({
+                code: card.querySelector('.step-code').value,
+                explanation: card.querySelector('.step-explanation').value,
+                activeHyp: card.querySelector('.step-hyp').value.split(',').map(s => s.trim()).filter(Boolean),
+                highlights: card.querySelector('.step-highlights').value.split(',').map(s => s.trim()).filter(Boolean)
+            }));
+
+            if (steps.length === 0) { adminDOM.saveMsg.className = 'admin-msg error'; adminDOM.saveMsg.textContent = 'Añade al menos un paso.'; return; }
+
+            adminDOM.saveMsg.className = 'admin-msg'; adminDOM.saveMsg.textContent = 'Leyendo archivos de GitHub...';
+            adminDOM.saveBtn.disabled = true;
 
             try {
-                // 1. Obtener objeto original para sacar su SHA (Requisito para UPDATE)
-                const url = `https://api.github.com/repos/${user}/${repo}/contents/${filePath}`;
-                const getRes = await fetch(url + '?ref=main', {
-                    headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+                const temaNum = admState.themeId;
+                const configPath = 'js/data/main_config.js';
+                const temaPath = `js/data/TEMA${temaNum}.js`;
+
+                // 1. Update main_config: modify, serialize
+                const configData = { ...window.EXERCISES_DATA };
+                if (!configData[temaNum]) configData[temaNum] = { title: `Tema ${temaNum}`, exercises: {} };
+                configData[temaNum].exercises[admState.exKey] = { title, name, defaultMethod: method };
+                const configContent = buildConfigJS(configData);
+
+                // 2. Update TEMA{N}.js: modify, serialize
+                let proofs = {};
+                Object.keys(state.proofs).forEach(k => {
+                    if (k.startsWith(`${temaNum}_`)) proofs[k] = state.proofs[k];
                 });
+                proofs[name] = { title: `Tema ${temaNum} - ${title}`, steps };
+                const temaContent = buildTemaJS(temaNum, proofs);
 
-                // Si no existe, GitHub da 404, pero igual podemos intentar crearlo en el PUT.
-                let sha = null;
-                if (getRes.ok) {
-                    const data = await getRes.json();
-                    sha = data.sha;
-                } else if (getRes.status !== 404) {
-                    throw new Error('No se pudo acceder a los archivos del repositorio.');
-                }
+                // 3. Push both files (ghWriteFile reads fresh SHA automatically)
+                adminDOM.saveMsg.textContent = 'Subiendo main_config.js...';
+                await ghWriteFile(configPath, configContent);
 
-                adminDOM.pushMsg.textContent = 'Realizando Commit remoto...';
+                adminDOM.saveMsg.textContent = `Subiendo TEMA${temaNum}.js...`;
+                await ghWriteFile(temaPath, temaContent);
 
-                // 2. Hacer PUT con el nuevo contenido Base64
-                const contentBase64 = utf8ToBase64(content);
-                const bodyJson = {
-                    message: `[⚙️ Admin Web Panel] Update ${filePath.split('/').pop()}`,
-                    content: contentBase64,
-                    branch: 'main'
-                };
-                if (sha) bodyJson.sha = sha;
+                // 6. Update local state + localStorage cache
+                window.EXERCISES_DATA = configData;
+                state.proofs[name] = { title: `Tema ${temaNum} - ${title}`, steps };
+                admSaveLocalCache();
 
-                const putRes = await fetch(url, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(bodyJson)
-                });
+                adminDOM.saveMsg.className = 'admin-msg success';
+                adminDOM.saveMsg.textContent = '¡Publicado! Se actualizará en ~1 min.';
 
-                if (putRes.ok) {
-                    adminDOM.pushMsg.className = 'admin-msg success';
-                    adminDOM.pushMsg.textContent = '¡Publicado con éxito! Tarda 1 min en reflejarse.';
-                    adminDOM.codeInput.value = ''; // Limpiamos preventivamente
-                } else {
-                    const errObj = await putRes.json();
-                    throw new Error(errObj.message || 'Error guardando archivo en GitHub.');
-                }
-            } catch (err) {
-                adminDOM.pushMsg.className = 'admin-msg error';
-                adminDOM.pushMsg.textContent = err.message;
+                // Return to exercise list after success
+                setTimeout(() => admRenderExercises(), 1500);
+            } catch(err) {
+                adminDOM.saveMsg.className = 'admin-msg error';
+                adminDOM.saveMsg.textContent = err.message;
             } finally {
-                adminDOM.pushBtn.disabled = false;
+                adminDOM.saveBtn.disabled = false;
             }
         });
+    }
+
+    // DELETE exercise
+    async function admDeleteExercise(exKey, exData) {
+        // Temporarily show native cursor for the confirm dialog
+        document.body.classList.add('native-cursor');
+        const confirmed = confirm(`¿Seguro que quieres borrar el ejercicio "${exKey.replace('exe','')}: ${exData.title}"?`);
+        document.body.classList.remove('native-cursor');
+        if (!confirmed) return;
+
+        try {
+            const temaNum = admState.themeId;
+            const configPath = 'js/data/main_config.js';
+            const temaPath = `js/data/TEMA${temaNum}.js`;
+
+            // Remove from config
+            const configData = { ...window.EXERCISES_DATA };
+            delete configData[temaNum].exercises[exKey];
+            const configContent = buildConfigJS(configData);
+
+            // Remove from proofs
+            const proofs = {};
+            Object.keys(state.proofs).forEach(k => {
+                if (k.startsWith(`${temaNum}_`) && k !== exData.name) proofs[k] = state.proofs[k];
+            });
+            const temaContent = buildTemaJS(temaNum, proofs);
+
+            // Push (ghWriteFile reads fresh SHA automatically)
+            await ghWriteFile(configPath, configContent);
+            await ghWriteFile(temaPath, temaContent);
+
+            // Update local + cache
+            window.EXERCISES_DATA = configData;
+            delete state.proofs[exData.name];
+            admSaveLocalCache();
+
+            admRenderExercises();
+        } catch(err) {
+            document.body.classList.add('native-cursor');
+            alert('Error al borrar: ' + err.message);
+            document.body.classList.remove('native-cursor');
+        }
+    }
+
+    // Save current state to localStorage so it persists across page refreshes
+    function admSaveLocalCache() {
+        try {
+            localStorage.setItem('pepeweb_admin_config', JSON.stringify(window.EXERCISES_DATA));
+            // Group proofs by tema
+            const proofsByTema = {};
+            Object.keys(state.proofs).forEach(k => {
+                const temaNum = k.split('_')[0];
+                if (!proofsByTema[temaNum]) proofsByTema[temaNum] = {};
+                proofsByTema[temaNum][k] = state.proofs[k];
+            });
+            localStorage.setItem('pepeweb_admin_proofs', JSON.stringify(proofsByTema));
+        } catch(e) { console.warn('Error saving admin cache', e); }
+    }
+
+    // Serializers: Object → JS source code
+    function escJS(s) { return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n'); }
+
+    function buildConfigJS(data) {
+        let out = '// main_config.js - Configuración visual y de metadatos de los ejercicios\n\nconst EXERCISES_DATA = {\n';
+        Object.keys(data).sort((a,b) => Number(a)-Number(b)).forEach(tid => {
+            const t = data[tid];
+            out += `    "${tid}": {\n        title: "${escJS(t.title)}",\n        exercises: {\n`;
+            Object.entries(t.exercises || {}).forEach(([ek, ex]) => {
+                out += `            "${ek}": { title: "${escJS(ex.title)}", name: "${escJS(ex.name)}", defaultMethod: "${escJS(ex.defaultMethod)}" },\n`;
+            });
+            out += `        }\n    },\n`;
+        });
+        out += '};\n\nwindow.EXERCISES_DATA = EXERCISES_DATA;\n';
+        return out;
+    }
+
+    function buildTemaJS(temaNum, proofs) {
+        const varName = `TEMA${temaNum}_PROOFS`;
+        let out = `// TEMA${temaNum}.js - Pruebas para Tema ${temaNum}\n\nconst ${varName} = {\n`;
+        Object.entries(proofs).forEach(([pName, pData]) => {
+            out += `    "${escJS(pName)}": {\n`;
+            out += `        title: "${escJS(pData.title)}",\n`;
+            out += `        steps: [\n`;
+            (pData.steps || []).forEach(step => {
+                out += `            {\n`;
+                out += `                code: "${escJS(step.code)}",\n`;
+                out += `                explanation: "${escJS(step.explanation)}",\n`;
+                out += `                activeHyp: [${(step.activeHyp||[]).map(h => `"${escJS(h)}"`).join(', ')}],\n`;
+                out += `                highlights: [${(step.highlights||[]).map(h => `"${escJS(h)}"`).join(', ')}]\n`;
+                out += `            },\n`;
+            });
+            out += `        ]\n    },\n`;
+        });
+        out += `};\n\nwindow.${varName} = ${varName};\n`;
+        return out;
     }
 
     // Teclado

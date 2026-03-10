@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
     const mobileSidebarBackdrop = document.getElementById('mobile-sidebar-backdrop');
     const sidebar = document.getElementById('sidebar');
+    const mobileSidebarMedia = window.matchMedia('(max-width: 1024px)');
 
     function closeMobileSidebar() {
         sidebar.classList.remove('open');
@@ -162,24 +163,65 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         DOM.screens.mainApp.classList.remove('sidebar-open');
         document.body.classList.remove('sidebar-open'); // para el selector del toggle (fuera de main-app)
+        if (mobileSidebarToggle) {
+            mobileSidebarToggle.setAttribute('aria-expanded', 'false');
+        }
     }
 
-    // Mostrar semi-dot toggle cuando el app está activo en móvil
-    function showMobileToggle() {
-        if (mobileSidebarToggle && window.matchMedia('(max-width: 1024px)').matches) {
+    function updateMobileSidebarAnchor() {
+        if (!mobileSidebarToggle || !mobileSidebarMedia.matches) return;
+        const rect = mobileSidebarToggle.getBoundingClientRect();
+        const anchorY = Math.round(rect.top + rect.height / 2);
+        document.documentElement.style.setProperty('--mobile-sidebar-anchor-y', `${anchorY}px`);
+    }
+
+    function syncMobileSidebarUI() {
+        if (!mobileSidebarToggle) return;
+        if (mobileSidebarMedia.matches && DOM.screens.mainApp.classList.contains('active')) {
             mobileSidebarToggle.style.display = 'flex';
+            updateMobileSidebarAnchor();
+        } else {
+            mobileSidebarToggle.style.display = 'none';
+            document.documentElement.style.removeProperty('--mobile-sidebar-anchor-y');
         }
+        if (!mobileSidebarMedia.matches) closeMobileSidebar();
+    }
+
+    function openMobileSidebar() {
+        if (!mobileSidebarMedia.matches) return;
+        sidebar.classList.add('open');
+        if (mobileSidebarBackdrop) {
+            mobileSidebarBackdrop.classList.add('visible');
+        }
+        DOM.screens.mainApp.classList.add('sidebar-open');
+        document.body.classList.add('sidebar-open');
+        if (mobileSidebarToggle) {
+            mobileSidebarToggle.setAttribute('aria-expanded', 'true');
+        }
+        updateMobileSidebarAnchor();
     }
 
     if (mobileSidebarToggle && mobileSidebarBackdrop) {
         mobileSidebarToggle.addEventListener('click', () => {
-            sidebar.classList.add('open');
-            mobileSidebarBackdrop.classList.add('visible');
-            DOM.screens.mainApp.classList.add('sidebar-open');
-            document.body.classList.add('sidebar-open'); // para el toggle que vive en body
+            if (sidebar.classList.contains('open')) {
+                closeMobileSidebar();
+            } else {
+                openMobileSidebar();
+            }
+        });
+
+        mobileSidebarToggle.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                mobileSidebarToggle.click();
+            }
         });
 
         mobileSidebarBackdrop.addEventListener('click', closeMobileSidebar);
+
+        window.addEventListener('resize', syncMobileSidebarUI, { passive: true });
+        window.addEventListener('orientationchange', syncMobileSidebarUI, { passive: true });
+        window.addEventListener('scroll', updateMobileSidebarAnchor, { passive: true });
     }
 
     // ==========================================
@@ -285,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.screens.mainApp.classList.replace('hidden', 'active');
         sidebar.classList.add('active');
         DOM.globalHeader.classList.remove('hidden-element');
-        if (mobileSidebarToggle) mobileSidebarToggle.style.display = 'flex';
+        syncMobileSidebarUI();
 
         if (withAnimation) {
             DOM.screens.mainApp.animate([
@@ -328,7 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.globalHeader.classList.add('hidden-element');
         DOM.screens.mainApp.classList.replace('active', 'hidden');
         sidebar.classList.remove('active');
-        if (mobileSidebarToggle) mobileSidebarToggle.style.display = 'none';
+        syncMobileSidebarUI();
         closeMobileSidebar();
         DOM.screens.intro.classList.replace('hidden', 'active');
 
@@ -380,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     DOM.screens.mainApp.style.opacity = '1';
                     DOM.screens.mainApp.style.transform = 'translate3d(0, 0, 0) scale(1)';
                     sidebar.classList.add('active');
-                    if (mobileSidebarToggle) mobileSidebarToggle.style.display = 'flex';
+                    syncMobileSidebarUI();
                     DOM.globalHeader.classList.remove('hidden-element');
                 }
                 if (!state.sidebarInitialized) {

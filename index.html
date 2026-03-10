@@ -554,7 +554,12 @@
         Al estar aquí como hijos directos de body, fixed = viewport siempre.
     -->
     <div id="mobile-sidebar-backdrop"></div>
-    <button id="mobile-sidebar-toggle" aria-label="Abrir menú de temas"></button>
+    <button id="mobile-sidebar-toggle" aria-label="Abrir menú de temas" aria-controls="sidebar" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 18l6-6-6-6" />
+        </svg>
+    </button>
 </body>
 
 </html>

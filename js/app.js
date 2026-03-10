@@ -149,6 +149,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
+    // SIDEBAR MÓVIL (Off-Canvas)
+    // ==========================================
+    const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
+    const mobileSidebarBackdrop = document.getElementById('mobile-sidebar-backdrop');
+    const sidebar = document.getElementById('sidebar');
+
+    function closeMobileSidebar() {
+        sidebar.classList.remove('open');
+        if (mobileSidebarBackdrop) {
+            mobileSidebarBackdrop.classList.remove('visible');
+        }
+        DOM.screens.mainApp.classList.remove('sidebar-open');
+    }
+
+    if (mobileSidebarToggle && mobileSidebarBackdrop) {
+        mobileSidebarToggle.addEventListener('click', () => {
+            sidebar.classList.add('open');
+            mobileSidebarBackdrop.classList.add('visible');
+            DOM.screens.mainApp.classList.add('sidebar-open');
+        });
+
+        mobileSidebarBackdrop.addEventListener('click', closeMobileSidebar);
+    }
+
+    // ==========================================
     // BACKGROUND PARALLAX (Fondo se mueve con cursor)
     // ==========================================
     function initBackgroundParallax() {
@@ -433,6 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
             wikiBtn.classList.add('active');
             state.currentThemeId = null;
             openWikiView();
+            if(window.innerWidth <= 850) closeMobileSidebar();
         };
         frag.appendChild(wikiBtn);
 
@@ -449,6 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.classList.add('active');
                 state.currentThemeId = themeId;
                 renderThemeEjercicios();
+                if(window.innerWidth <= 850) closeMobileSidebar();
             };
             DOM.themeBtns.push(btn);
             frag.appendChild(btn);

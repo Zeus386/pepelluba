@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Isabelle Logic Flow | @pepelluba</title>
 
     <!-- Fuente Premium -->
@@ -61,6 +61,8 @@
 
     <!-- PANTALLA 2: APLICACIÓN PRINCIPAL -->
     <div id="main-app" class="screen hidden">
+        <!-- Fondo protector para menú móvil -->
+        <div id="mobile-sidebar-backdrop"></div>
 
         <!-- SIDEBAR: Temas -->
         <aside id="sidebar">
@@ -80,6 +82,13 @@
                 </div>
             </div>
         </aside>
+
+        <!-- Botón flotante para abrir menú en móvil -->
+        <button id="mobile-sidebar-toggle" aria-label="Abrir Menú">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 12h16M4 6h16M4 18h16"></path>
+            </svg>
+        </button>
 
         <!-- ÁREA CENTRAL: Contenido dinámico -->
         <main id="content-area">

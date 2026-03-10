@@ -1412,48 +1412,74 @@ body.dark-mode .adm-step-card textarea {
         overflow-x: hidden;
     }
 
-    /* Move Sidebar to Bottom Horizontal Dock */
+    /* Ocultar Barra Lateral por defecto (Off-Canvas) */
     #sidebar {
-        top: auto;
-        bottom: 1.5rem;
-        left: 50%;
-        transform: translateX(-50%);
-        width: auto;
-        max-width: 90vw;
+        top: 50%;
+        left: -150%; /* Fuera de la vista */
+        transform: translateY(-50%);
+        transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1);
+        z-index: 1005; /* Por encima de todo */
+        /* Reducimos un poco el tamaño global del dock lateral */
+        transform-origin: center left;
+        scale: 0.9;
     }
 
-    .sidebar-dock {
-        flex-direction: row;
-        padding: 0.5rem 1rem;
-        border-radius: 2rem;
+    /* Clase para abrir el menú */
+    #sidebar.open {
+        left: 1.5rem;
     }
 
-    .sidebar-dock-inner {
-        flex-direction: row;
-        gap: 8px;
-        padding: 0;
+    /* Fondo oscuro protector al abrir el menú */
+    #mobile-sidebar-backdrop {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(4px);
+        z-index: 1004;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+    }
+    #mobile-sidebar-backdrop.visible {
+        opacity: 1;
+        pointer-events: auto;
     }
 
-    .sidebar-divider {
-        width: 1.5px;
-        height: 24px;
-        margin: 0 6px;
+    /* Botón Flotante para revelar menú */
+    #mobile-sidebar-toggle {
+        position: fixed;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 38px;
+        height: 56px;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0,0,0,0.1);
+        border-left: none;
+        border-radius: 0 16px 16px 0;
+        z-index: 1000;
+        display: flex; /* Ahora es visible */
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 2px 0 15px rgba(0,0,0,0.08);
+        color: var(--c-text-main);
+        transition: transform 0.3s ease, background 0.3s ease;
     }
 
-    #theme-nav {
-        flex-direction: row;
-        gap: 6px;
+    body.dark-mode #mobile-sidebar-toggle {
+        background: rgba(30, 30, 30, 0.75);
+        border-color: rgba(255,255,255,0.1);
+        color: #ddd;
     }
 
-    /* Scale Down Theme Buttons for small screens */
-    .theme-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 0.85rem;
-        border-radius: 12px;
+    /* Ocultar toggle si el menú está abierto */
+    #main-app.sidebar-open #mobile-sidebar-toggle {
+        transform: translate(-100%, -50%);
     }
 
-    /* Content Area Adjustment */
+    /* Content Area Adjustment - No dock a considerar */
     #content-area {
         height: auto;
         min-height: 100vh;
@@ -1465,11 +1491,11 @@ body.dark-mode .adm-step-card textarea {
         width: 100%;
         height: auto;
         min-height: 100vh;
-        padding: 0 1rem 7rem 1rem; /* Extra padding bottom to avoid dock overlap */
+        /* Padding inferior normal, padding izquierdo para que no solape el boton toggle */
+        padding: 0 1.5rem 3rem 3rem; 
     }
 
     .view.hidden-view {
-        /* On mobile, hidden views must not take up vertical spcae */
         display: none !important;
     }
 
@@ -1477,11 +1503,12 @@ body.dark-mode .adm-step-card textarea {
     .global-header {
         height: 80px;
         padding: 0 1rem;
-        position: relative; /* Let it scroll naturally on mobile */
+        position: relative; 
     }
 
     #global-back {
         margin-top: 1rem;
+        margin-left: 1.5rem;
     }
 
     .section-header, .isabelle-header {
@@ -1534,6 +1561,14 @@ body.dark-mode .adm-step-card textarea {
     .wiki-content {
         height: auto !important; /* Override inline height from style tag */
         padding-right: 0;
+    }
+}
+
+/* Ocultar elementos móviles en desktop */
+@media (min-width: 851px) {
+    #mobile-sidebar-toggle,
+    #mobile-sidebar-backdrop {
+        display: none !important;
     }
 }
 

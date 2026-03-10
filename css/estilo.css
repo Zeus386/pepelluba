@@ -50,17 +50,6 @@ html.dark-mode-preload body {
 }
 
 /* ==========================================
-   ANTI-FOUC — Fuentes
-   ========================================== */
-/* Ocultar texto con fuentes custom hasta que carguen — evita el flash de fuente incorrecta */
-html.fonts-loading #intro-text,
-html.fonts-loading #logic-btn,
-html.fonts-loading #sub-text {
-    opacity: 0 !important;
-    transition: none !important;
-}
-
-/* ==========================================
    ANTI-FOUC — Carga Directa a /logica
    ========================================== */
 html.direct-logica #intro-screen {
@@ -96,26 +85,32 @@ html.direct-logica #global-header.hidden-element {
     }
 }
 
-/* Reset Extremo */
-*,
-*::before,
-*::after {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+    /* Reset Extremo */
+    *,
+    *::before,
+    *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    color: var(--c-text-main);
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    overflow: hidden;
-    /* Control total del layout */
-    width: 100%;
-    height: 100vh;
-    background-color: var(--c-bg);
-}
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden !important;
+        position: relative;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--c-text-main);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        overflow-y: auto;
+        height: 100vh;
+        background-color: var(--c-bg);
+    }
 
 /* GPU-accelerated background pattern layer */
 /* IMPORTANTE: NO usar transform aquí — rompería position:fixed de hijos (toggle, sidebar, etc.)
@@ -1142,6 +1137,72 @@ body.dark-mode .control-btn.primary:hover {
     background: #fff;
 }
 
+html.dark-mode-preload body #sidebar {
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+html.dark-mode-preload body .theme-btn {
+    background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+    color: #c8c0b4;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+html.dark-mode-preload body .theme-btn:first-child {
+    background: linear-gradient(145deg, #8a7d66, #6b604d);
+    color: #f0ebe5;
+}
+
+html.dark-mode-preload body .panel {
+    background: rgba(20, 20, 20, 0.88);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.8);
+}
+
+html.dark-mode-preload body .code-panel {
+    border-right: 1px solid rgba(255, 255, 255, 0.10);
+    background: rgba(15, 15, 15, 0.92);
+}
+
+html.dark-mode-preload body .explanation-panel {
+    background: rgba(18, 18, 18, 0.9);
+}
+
+html.dark-mode-preload body .hypothesis-box {
+    background: #2A2A2A;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+html.dark-mode-preload body .control-btn {
+    background: #2A2A2A;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--c-text-main);
+}
+
+html.dark-mode-preload body .icon-btn.top-nav {
+    background: #2A2A2A;
+}
+
+html.dark-mode-preload body .wiki-grid-item {
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+html.dark-mode-preload body .wiki-subcard {
+    background: #2A2A2A;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+html.dark-mode-preload body .wiki-subcard[open] {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+html.dark-mode-preload body .wiki-subsummary:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+html.dark-mode-preload body .wiki-code-block {
+    background: rgba(255, 255, 255, 0.05);
+}
+
 /* ==========================================
    DARK MODE ADJUSTMENTS
    ========================================== */
@@ -1561,28 +1622,34 @@ body.dark-mode .adm-step-card textarea {
         overflow-y: auto !important;
         height: auto !important;
         width: 100% !important;
+        position: relative;
     }
 
     /* Main Layout & Scrolling */
     #main-app {
         height: auto;
         min-height: 100vh;
-        overflow: visible !important;
+        overflow-x: hidden !important;
+        overflow-y: visible !important;
+        position: relative;
+        z-index: 1;
     }
 
     /* Ocultar Barra Lateral por defecto (Off-Canvas) */
-    /* BUGFIX: Usar transform translateX en vez de left (GPU-accelerated, sin reflow) */
+    /* Ahora fuera de #main-app, por lo que position:fixed siempre es viewport-relative */
     #sidebar {
-        top: var(--mobile-sidebar-anchor-y, 50dvh);
-        left: max(0.75rem, env(safe-area-inset-left));
-        transform: translateY(-50%) translateX(calc(-100% - 2.5rem));
+        position: fixed !important;
+        top: 50% !important;
+        left: 0.75rem !important;
+        transform: translateY(-50%) translateX(calc(-100% - 2.5rem)) !important;
         opacity: 0;
         pointer-events: none;
-        transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
             opacity 0.35s ease;
-        z-index: 1005;
-        scale: 1;
-        max-height: calc(100dvh - 1.5rem);
+        z-index: 10000 !important;
+        /* Por encima de todo */
+        max-height: 90vh;
+        width: auto;
     }
 
     /* .active en mobile: el app está activo pero sidebar sigue oculto */
@@ -1592,28 +1659,25 @@ body.dark-mode .adm-step-card textarea {
     }
 
     /* Clase para abrir el sidebar — slide-in con rebote */
-    #sidebar.open,
-    #sidebar.active.open {
-        transform: translateY(-50%) translateX(0);
-        opacity: 1;
-        pointer-events: auto;
+    #sidebar.open {
+        transform: translateY(-50%) translateX(0) !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
     }
 
     /* Fondo oscuro: SIN backdrop-filter aquí.
        El blur se aplica directamente al content-area (ver abajo). */
     #mobile-sidebar-backdrop {
-        position: fixed;
+        position: fixed !important;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.35);
-        /* BUGFIX blur invertido: NO usar backdrop-filter en el overlay.
-           El blur se aplica al content-area con filter:blur() */
-        z-index: 1004;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 9999 !important;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.35s ease;
+        transition: opacity 0.4s ease;
     }
 
     #mobile-sidebar-backdrop.visible {
@@ -1621,88 +1685,79 @@ body.dark-mode .adm-step-card textarea {
         pointer-events: auto;
     }
 
-    /* BUGFIX blur: el blur afecta a TODA la página menos el sidebar.
-       Se aplica filter:blur() directamente al content-area cuando sidebar está abierto. */
-    #content-area {
-        transition: filter 0.4s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-        will-change: filter, transform;
-    }
-
-    #main-app.sidebar-open #content-area {
-        filter: blur(8px) brightness(0.75);
-        transform: scale(0.97);
+    /* BUGFIX blur: el blur afecta a TODA la página menos el sidebar. */
+    #main-app.sidebar-open {
+        filter: blur(8px) brightness(0.8);
         pointer-events: none;
     }
 
-    /* Semi-dot toggle: BUGFIX duplicado display + posicionamiento viewport */
+    /* Semi-dot toggle: Rock-solid fixed positioning */
     #mobile-sidebar-toggle {
         position: fixed !important;
-        left: max(0px, env(safe-area-inset-left));
-        top: var(--mobile-sidebar-anchor-y, 50dvh);
-        transform: translateY(-50%);
-        width: clamp(34px, 4.4vw, 40px);
-        height: clamp(50px, 6.5vh, 58px);
-        background: rgba(255, 255, 255, 0.8);
+        left: 0 !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        width: 40px !important;
+        height: 60px !important;
+        background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(12px) saturate(180%);
         -webkit-backdrop-filter: blur(12px) saturate(180%);
-        border: 1px solid rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.1);
         border-left: none;
         border-radius: 0 14px 14px 0;
-        z-index: 1003;
-        /* Por debajo del backdrop (1004) para que no tape el cierre */
+        z-index: 9998 !important;
+        /* Justo debajo del backdrop para que no tape el cierre pero sea accesible */
         display: none;
-        /* JS controla cuándo se muestra */
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        box-shadow: 3px 0 16px rgba(0, 0, 0, 0.1);
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
         color: var(--c-text-main);
-        transition: opacity 0.3s ease,
-            transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
         touch-action: manipulation;
     }
 
     #mobile-sidebar-toggle svg {
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
         pointer-events: none;
     }
 
     body.dark-mode #mobile-sidebar-toggle {
-        background: rgba(28, 28, 28, 0.85);
-        border-color: rgba(255, 255, 255, 0.08);
-        color: #ddd;
+        background: rgba(35, 35, 35, 0.9);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #fff;
     }
 
-    /* Ocultar toggle cuando sidebar está abierto — slide out a la izquierda */
+    /* Ocultar toggle cuando sidebar está abierto */
     body.sidebar-open #mobile-sidebar-toggle {
-        transform: translateY(-50%) translateX(-120%);
+        transform: translateY(-50%) translateX(-110%) !important;
         opacity: 0;
-        pointer-events: none;
     }
 
     .sidebar-dock {
-        max-height: calc(100dvh - 1.5rem);
-        padding: clamp(0.3rem, 1.2vw, 0.5rem);
+        max-height: 85vh;
+        padding: 0.6rem;
     }
 
     .sidebar-dock-inner {
-        max-height: calc(100dvh - 2.5rem);
+        max-height: 80vh;
         overflow-y: auto;
-        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
     }
 
     #theme-nav {
-        max-height: calc(100dvh - 10rem);
+        max-height: 70vh;
         overflow-y: auto;
-        overflow-x: hidden;
+        gap: 10px;
     }
 
-    /* Content Area Adjustment - No dock a considerar */
+    /* Content Area Adjustment */
     #content-area {
-        height: auto;
-        min-height: 100vh;
-        overflow: visible !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-x: hidden !important;
+        overflow-y: visible !important;
     }
 
     .view {
@@ -1711,8 +1766,8 @@ body.dark-mode .adm-step-card textarea {
         width: 100%;
         height: auto;
         min-height: 100vh;
-        /* Padding inferior normal, padding izquierdo para que no solape el boton toggle */
-        padding: 0 1.5rem 3rem 3rem;
+        padding: 0 1.5rem 4rem 3rem;
+        overflow-x: hidden !important;
     }
 
     .view.hidden-view {

@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Isabelle Logic Flow | @pepelluba</title>
     <!-- Fuentes: preconnect + carga no bloqueante -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,6 +22,17 @@
     <link rel="stylesheet" href="css/estilo.css">
 
     <!-- Anti-FOUC: ejecuta ANTES del render -->
+    <style id="fouc-shield">
+        body {
+            opacity: 0 !important;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Si el JS falla o tarda mucho, mostramos igual */
+        html.app-ready body {
+            opacity: 1 !important;
+        }
+    </style>
     <script>
         // 1. Carga directa a /logica (cualquier sub-ruta)
         if (window.location.hash.startsWith('#/logica')) {
@@ -32,24 +44,64 @@
             document.documentElement.classList.add('dark-mode-preload');
         }
 
-        // 3. FOUC de fuentes: oculta texto hasta que las fuentes carguen
-        // Si tardan más de 1.5s, mostramos igualmente (fallback)
+        // 3. FOUC de fuentes y contenido: oculta hasta que esté todo listo
         document.documentElement.classList.add('fonts-loading');
-        var _fontsTimer = setTimeout(function () {
+
+        function revealApp() {
+            if (document.documentElement.classList.contains('app-ready')) return;
             document.documentElement.classList.remove('fonts-loading');
             document.documentElement.classList.add('fonts-ready');
-        }, 1500);
+            document.documentElement.classList.add('app-ready');
+        }
+
+        // Timeout de seguridad: 1s máximo de espera por fuentes
+        var _fontsTimer = setTimeout(revealApp, 1000);
+
         if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(function () {
+            document.fonts.ready.then(function() {
                 clearTimeout(_fontsTimer);
-                document.documentElement.classList.remove('fonts-loading');
-                document.documentElement.classList.add('fonts-ready');
+                revealApp();
             });
+        } else {
+            // Fallback para navegadores sin document.fonts
+            window.addEventListener('load', revealApp);
         }
     </script>
 </head>
 
 <body>
+
+    <!--
+        IMPORTANTE: Toggle, sidebar y backdrop en el body, NO dentro de #main-app.
+        Cualquier ancestro con transform/filter/will-change (como el de la animación de #main-app)
+        rompe el position:fixed en navegadores móviles.
+    -->
+    <div id="mobile-sidebar-backdrop"></div>
+    <button id="mobile-sidebar-toggle" aria-label="Abrir menú de temas" aria-controls="sidebar" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 18l6-6-6-6" />
+        </svg>
+    </button>
+
+    <!-- SIDEBAR: Temas (Ahora fuera de main-app para estabilidad total) -->
+    <aside id="sidebar">
+        <div class="liquidGlass-wrapper sidebar-dock">
+            <div class="liquidGlass-effect"></div>
+            <div class="liquidGlass-tint"></div>
+            <div class="liquidGlass-shine"></div>
+            <div class="liquidGlass-text sidebar-dock-inner">
+                <nav id="theme-nav">
+                    <!-- Temas inyectados aquí por JS -->
+                </nav>
+                <div class="sidebar-divider"></div>
+                <div class="light-switch-wrapper sidebar-switch">
+                    <input type="checkbox" class="theme-toggle" id="theme-toggle-app">
+                    <label for="theme-toggle-app" class="light-switch" aria-label="Cambiar modo oscuro/claro"></label>
+                </div>
+            </div>
+        </div>
+    </aside>
 
     <!-- ENCABEZADO GLOBAL (Siempre visible) -->
     <div id="global-header" class="global-header hidden-element">
@@ -83,26 +135,6 @@
 
     <!-- PANTALLA 2: APLICACIÓN PRINCIPAL -->
     <div id="main-app" class="screen hidden">
-
-        <!-- SIDEBAR: Temas -->
-        <aside id="sidebar">
-            <div class="liquidGlass-wrapper sidebar-dock">
-                <div class="liquidGlass-effect"></div>
-                <div class="liquidGlass-tint"></div>
-                <div class="liquidGlass-shine"></div>
-                <div class="liquidGlass-text sidebar-dock-inner">
-                    <nav id="theme-nav">
-                        <!-- Temas inyectados aquí por JS -->
-                    </nav>
-                    <div class="sidebar-divider"></div>
-                    <div class="light-switch-wrapper sidebar-switch">
-                        <input type="checkbox" class="theme-toggle" id="theme-toggle-app">
-                        <label for="theme-toggle-app" class="light-switch"
-                            aria-label="Cambiar modo oscuro/claro"></label>
-                    </div>
-                </div>
-            </div>
-        </aside>
 
         <!-- ÁREA CENTRAL: Contenido dinámico -->
         <main id="content-area">
@@ -547,19 +579,6 @@
     <script src="js/data/TEMA5.js"></script>
     <script src="js/data/TEMA6.js"></script>
     <script src="js/app.js"></script>
-
-    <!--
-        IMPORTANTE: Toggle y backdrop en el body, NO dentro de #main-app.
-        Cualquier ancestro con transform/filter/will-change rompe position:fixed.
-        Al estar aquí como hijos directos de body, fixed = viewport siempre.
-    -->
-    <div id="mobile-sidebar-backdrop"></div>
-    <button id="mobile-sidebar-toggle" aria-label="Abrir menú de temas" aria-controls="sidebar" aria-expanded="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
-            stroke-linejoin="round" aria-hidden="true">
-            <path d="M9 18l6-6-6-6" />
-        </svg>
-    </button>
 </body>
 
 </html>

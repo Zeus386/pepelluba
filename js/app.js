@@ -168,21 +168,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateMobileSidebarAnchor() {
-        if (!mobileSidebarToggle || !mobileSidebarMedia.matches) return;
-        const rect = mobileSidebarToggle.getBoundingClientRect();
-        const anchorY = Math.round(rect.top + rect.height / 2);
-        document.documentElement.style.setProperty('--mobile-sidebar-anchor-y', `${anchorY}px`);
-    }
-
     function syncMobileSidebarUI() {
         if (!mobileSidebarToggle) return;
         if (mobileSidebarMedia.matches && DOM.screens.mainApp.classList.contains('active')) {
             mobileSidebarToggle.style.display = 'flex';
-            updateMobileSidebarAnchor();
         } else {
             mobileSidebarToggle.style.display = 'none';
-            document.documentElement.style.removeProperty('--mobile-sidebar-anchor-y');
         }
         if (!mobileSidebarMedia.matches) closeMobileSidebar();
     }
@@ -198,7 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mobileSidebarToggle) {
             mobileSidebarToggle.setAttribute('aria-expanded', 'true');
         }
-        updateMobileSidebarAnchor();
     }
 
     if (mobileSidebarToggle && mobileSidebarBackdrop) {
@@ -221,7 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.addEventListener('resize', syncMobileSidebarUI, { passive: true });
         window.addEventListener('orientationchange', syncMobileSidebarUI, { passive: true });
-        window.addEventListener('scroll', updateMobileSidebarAnchor, { passive: true });
     }
 
     // ==========================================
@@ -1304,4 +1293,9 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
 
     // START
     checkInitialRoute();
+
+    // Anti-FOUC Safety: Si el script del head no lo hizo, mostramos ahora
+    if (typeof revealApp === 'function') {
+        revealApp();
+    }
 });

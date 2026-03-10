@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function findExerciseIdByName(name) {
         // Búsqueda profunda en todos los temas
         for (const [id, data] of Object.entries(window.EXERCISES_DATA || {})) {
-            const found = (data.exercises || []).find(e => e.name === name);
+            const found = Object.values(data.exercises || {}).find(e => e.name === name);
             if (found) return found;
         }
         return null;

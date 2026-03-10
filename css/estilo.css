@@ -98,11 +98,16 @@ body::after {
     background-image: url("https://static.vecteezy.com/system/resources/previews/056/652/082/non_2x/hand-drawn-white-flower-seamless-pattern-floral-repeating-wallpaper-for-textile-design-fabric-print-wrapping-paper-cute-daisy-flowers-on-blue-background-repeated-ditsy-texture-vector.jpg");
     background-size: 300px;
     background-repeat: repeat;
-    background-position: center;
+    background-position: 0 0;
     z-index: -2;
     pointer-events: none;
-    transform: translate3d(var(--bg-x), var(--bg-y), 0);
-    will-change: transform;
+}
+
+@media (pointer: fine) {
+    body::after {
+        transform: translate3d(var(--bg-x), var(--bg-y), 0);
+        will-change: transform;
+    }
 }
 
 /* Pseudo-element to control background opacity independently */

@@ -3,28 +3,48 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Isabelle Logic Flow | @pepelluba</title>
-
-    <!-- Fuente Premium -->
+    <!-- Fuentes: preconnect + carga no bloqueante -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
+    <!-- Non-blocking font load: evita que el CSS de fuentes bloquee el render -->
+    <link rel="preload" as="style"
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+        onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700&display=swap">
+    </noscript>
 
     <!-- CSS Puro Optimizado -->
     <link rel="stylesheet" href="css/estilo.css">
 
-    <!-- Anti-FOUC (Evita el parpadeo de la intro si entras directo a lógica) -->
+    <!-- Anti-FOUC: ejecuta ANTES del render -->
     <script>
-        if (window.location.hash === '#/logica') {
+        // 1. Carga directa a /logica (cualquier sub-ruta)
+        if (window.location.hash.startsWith('#/logica')) {
             document.documentElement.classList.add('direct-logica');
         }
 
-        // Anti-FOUC Dark Mode (Evita flashazo blanco si tenía dark mode guardado)
+        // 2. Dark Mode inmediato (evita flashazo blanco)
         if (localStorage.getItem('pepeweb_theme') === 'dark') {
             document.documentElement.classList.add('dark-mode-preload');
+        }
+
+        // 3. FOUC de fuentes: oculta texto hasta que las fuentes carguen
+        // Si tardan más de 1.5s, mostramos igualmente (fallback)
+        document.documentElement.classList.add('fonts-loading');
+        var _fontsTimer = setTimeout(function () {
+            document.documentElement.classList.remove('fonts-loading');
+            document.documentElement.classList.add('fonts-ready');
+        }, 1500);
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(function () {
+                clearTimeout(_fontsTimer);
+                document.documentElement.classList.remove('fonts-loading');
+                document.documentElement.classList.add('fonts-ready');
+            });
         }
     </script>
 </head>
@@ -34,8 +54,10 @@
     <!-- ENCABEZADO GLOBAL (Siempre visible) -->
     <div id="global-header" class="global-header hidden-element">
         <button id="global-back">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5" />
+                <polyline points="12 19 5 12 12 5" />
             </svg>
             <span>VOLVER</span>
         </button>
@@ -61,8 +83,6 @@
 
     <!-- PANTALLA 2: APLICACIÓN PRINCIPAL -->
     <div id="main-app" class="screen hidden">
-        <!-- Fondo protector para menú móvil -->
-        <div id="mobile-sidebar-backdrop"></div>
 
         <!-- SIDEBAR: Temas -->
         <aside id="sidebar">
@@ -77,24 +97,18 @@
                     <div class="sidebar-divider"></div>
                     <div class="light-switch-wrapper sidebar-switch">
                         <input type="checkbox" class="theme-toggle" id="theme-toggle-app">
-                        <label for="theme-toggle-app" class="light-switch" aria-label="Cambiar modo oscuro/claro"></label>
+                        <label for="theme-toggle-app" class="light-switch"
+                            aria-label="Cambiar modo oscuro/claro"></label>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <!-- Botón flotante para abrir menú en móvil -->
-        <button id="mobile-sidebar-toggle" aria-label="Abrir Menú">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 12h16M4 6h16M4 18h16"></path>
-            </svg>
-        </button>
-
         <!-- ÁREA CENTRAL: Contenido dinámico -->
         <main id="content-area">
 
-            <!-- Vista de la Wiki / Guía -->
-            <section id="wiki-view" class="view hidden-view">
+            <!-- Vista de la Wiki / Guía — ACTIVA POR DEFECTO (evita vacío en direct-logica) -->
+            <section id="wiki-view" class="view active-view">
                 <header class="section-header">
                     <h3>Deducción Natural en Isabelle</h3>
                 </header>
@@ -266,7 +280,7 @@
             </section>
 
             <!-- Vista de Selección de Ejercicios -->
-            <section id="exercises-view" class="view active-view">
+            <section id="exercises-view" class="view hidden-view">
                 <header class="section-header">
                     <h3 id="current-theme-title">Selecciona un Tema</h3>
                 </header>
@@ -277,48 +291,62 @@
 
             <!-- Vista del Panel de Administración (API GitHub) -->
             <section id="admin-view" class="view hidden-view">
-                <header class="section-header" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="font-size: 1.8rem; font-family: 'Outfit', sans-serif; color: var(--c-accent-dark);">Administración Secreta</h3>
+                <header class="section-header"
+                    style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="font-size: 1.8rem; font-family: 'Outfit', sans-serif; color: var(--c-accent-dark);">
+                        Administración Secreta</h3>
                     <button id="admin-close-btn" class="icon-btn" aria-label="Cerrar Panel">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
                     </button>
                 </header>
-                
+
                 <div class="admin-container">
                     <!-- Login de GitHub -->
                     <div id="admin-login-box" class="admin-login-box">
                         <p style="margin-bottom: 1.5rem; color: var(--c-text-muted); font-size: 0.95rem;">
                             Conéctate a GitHub para actualizar los ejercicios directamente en el servidor.
                         </p>
-                        
+
                         <div class="admin-input-group">
                             <label>Usuario de GitHub</label>
-                            <input type="text" id="gh-user" class="admin-input" placeholder="Ej: pepelluba" autocomplete="off">
+                            <input type="text" id="gh-user" class="admin-input" placeholder="Ej: pepelluba"
+                                autocomplete="off">
                         </div>
-                        
+
                         <div class="admin-input-group">
                             <label>Repositorio</label>
-                            <input type="text" id="gh-repo" class="admin-input" placeholder="Ej: pepeweb" autocomplete="off">
+                            <input type="text" id="gh-repo" class="admin-input" placeholder="Ej: pepeweb"
+                                autocomplete="off">
                         </div>
 
                         <div class="admin-input-group">
                             <label>Token Personal de Acceso (PAT)</label>
-                            <input type="password" id="gh-token" class="admin-input" placeholder="ghp_XXXXXXXXXXXXXXXXXXXXXXXX" autocomplete="off">
+                            <input type="password" id="gh-token" class="admin-input"
+                                placeholder="ghp_XXXXXXXXXXXXXXXXXXXXXXXX" autocomplete="off">
                         </div>
 
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; margin-bottom: 1.5rem;">
-                            <input type="checkbox" id="gh-remember" style="accent-color: var(--c-text-main); width: 16px; height: 16px;">
-                            <label for="gh-remember" style="font-size: 0.85rem; color: var(--c-text-muted); cursor: pointer; text-transform: none; font-weight: normal;">Recordar datos en este navegador</label>
+                        <div
+                            style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; margin-bottom: 1.5rem;">
+                            <input type="checkbox" id="gh-remember"
+                                style="accent-color: var(--c-text-main); width: 16px; height: 16px;">
+                            <label for="gh-remember"
+                                style="font-size: 0.85rem; color: var(--c-text-muted); cursor: pointer; text-transform: none; font-weight: normal;">Recordar
+                                datos en este navegador</label>
                         </div>
 
-                        <button id="admin-login-btn" class="control-btn primary admin-btn" style="width: 100%; border-radius: 8px;">Conectar a GitHub</button>
+                        <button id="admin-login-btn" class="control-btn primary admin-btn"
+                            style="width: 100%; border-radius: 8px;">Conectar a GitHub</button>
                         <p id="admin-auth-msg" class="admin-msg"></p>
                     </div>
 
                     <!-- Dashboard / Editor Visual CRUD -->
                     <div id="admin-dashboard" class="admin-dashboard hidden">
                         <p style="margin-bottom: 1rem; color: var(--c-text-muted); font-size: 0.9rem;">
-                            Conectado como <strong id="admin-connected-user" style="color: var(--c-text-main);">...</strong>
+                            Conectado como <strong id="admin-connected-user"
+                                style="color: var(--c-text-main);">...</strong>
                         </p>
 
                         <!-- Sub-Pantalla 1: Selector de Tema -->
@@ -331,33 +359,43 @@
                         <div id="adm-exercises" class="adm-screen hidden">
                             <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
                                 <button id="adm-back-themes" class="icon-btn" aria-label="Volver">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                                    </svg>
                                 </button>
                                 <h4 class="adm-subtitle" id="adm-ex-title" style="margin:0;">Ejercicios</h4>
                             </div>
                             <div id="adm-ex-list" class="adm-list"></div>
                             <div style="display:flex; gap:0.5rem; margin-top:1.5rem;">
-                                <button id="adm-new-ex" class="control-btn primary admin-btn" style="flex:1; border-radius:12px;">
+                                <button id="adm-new-ex" class="control-btn primary admin-btn"
+                                    style="flex:1; border-radius:12px;">
                                     ➕ Crear Nuevo
                                 </button>
-                                <button id="adm-import-ai" class="control-btn admin-btn" style="flex:1; border-radius:12px; background:var(--c-bg-alt); color:var(--c-text-main); border-color:rgba(0,0,0,0.1);">
+                                <button id="adm-import-ai" class="control-btn admin-btn"
+                                    style="flex:1; border-radius:12px; background:var(--c-bg-alt); color:var(--c-text-main); border-color:rgba(0,0,0,0.1);">
                                     🤖 Importar con IA
                                 </button>
                             </div>
                         </div>
 
                         <!-- Sub-Pantalla 3: Editor de Ejercicio -->
-                        <div id="adm-editor" class="adm-screen hidden" style="overflow-y:auto;max-height:calc(100vh - 280px);padding-right:0.5rem;">
+                        <div id="adm-editor" class="adm-screen hidden"
+                            style="overflow-y:auto;max-height:calc(100vh - 280px);padding-right:0.5rem;">
                             <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
                                 <button id="adm-back-exs" class="icon-btn" aria-label="Volver">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                                    </svg>
                                 </button>
                                 <h4 class="adm-subtitle" id="adm-editor-title" style="margin:0;">Editor</h4>
                             </div>
 
                             <div class="admin-input-group">
                                 <label>Título del Ejercicio</label>
-                                <input type="text" id="adm-ex-titleinput" class="admin-input" placeholder="Ej: A ⟶ E, A ⊢ E">
+                                <input type="text" id="adm-ex-titleinput" class="admin-input"
+                                    placeholder="Ej: A ⟶ E, A ⊢ E">
                             </div>
                             <div class="admin-input-group">
                                 <label>Nombre Interno (ID único)</label>
@@ -365,16 +403,19 @@
                             </div>
                             <div class="admin-input-group">
                                 <label>Método por Defecto</label>
-                                <input type="text" id="adm-ex-method" class="admin-input" placeholder="Ej: Solución Automática (auto)">
+                                <input type="text" id="adm-ex-method" class="admin-input"
+                                    placeholder="Ej: Solución Automática (auto)">
                             </div>
 
                             <h4 class="adm-subtitle" style="margin-top:2rem;">Pasos de la Prueba</h4>
                             <div id="adm-steps-container"></div>
-                            <button id="adm-add-step" class="control-btn admin-btn" style="width:100%;border-radius:12px;margin-top:1rem;">
+                            <button id="adm-add-step" class="control-btn admin-btn"
+                                style="width:100%;border-radius:12px;margin-top:1rem;">
                                 ➕ Añadir Paso
                             </button>
 
-                            <button id="adm-save-ex" class="control-btn primary admin-btn" style="width:100%;border-radius:12px;margin-top:2rem;font-size:1rem;padding:1rem;">
+                            <button id="adm-save-ex" class="control-btn primary admin-btn"
+                                style="width:100%;border-radius:12px;margin-top:2rem;font-size:1rem;padding:1rem;">
                                 💾 Guardar y Publicar en GitHub
                             </button>
                             <p id="adm-save-msg" class="admin-msg"></p>
@@ -384,27 +425,36 @@
                         <div id="adm-ai-import" class="adm-screen hidden">
                             <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
                                 <button id="adm-back-exs-from-ai" class="icon-btn" aria-label="Volver">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                                    </svg>
                                 </button>
                                 <h4 class="adm-subtitle" style="margin:0;">Importar con IA (Gemini)</h4>
                             </div>
 
-                            <div style="background:var(--c-bg-alt); padding:1rem; border-radius:8px; margin-bottom:1.5rem;">
+                            <div
+                                style="background:var(--c-bg-alt); padding:1rem; border-radius:8px; margin-bottom:1.5rem;">
                                 <p style="font-size:0.9rem; margin-bottom:1rem; color:var(--c-text-main);">
                                     1. Copia el siguiente prompt y envíaselo a Gemini o ChatGPT.
                                 </p>
-                                <button id="adm-ai-copy-prompt" class="control-btn admin-btn" style="width:100%; border-radius:8px; background:#fff;">
+                                <button id="adm-ai-copy-prompt" class="control-btn admin-btn"
+                                    style="width:100%; border-radius:8px; background:#fff;">
                                     📋 Copiar Instrucciones
                                 </button>
-                                <p id="adm-ai-copy-msg" style="font-size:0.8rem; color:var(--c-accent-dark); text-align:center; margin-top:0.5rem; min-height:1rem;"></p>
+                                <p id="adm-ai-copy-msg"
+                                    style="font-size:0.8rem; color:var(--c-accent-dark); text-align:center; margin-top:0.5rem; min-height:1rem;">
+                                </p>
                             </div>
 
                             <div class="admin-input-group">
                                 <label>2. Pega aquí el JSON que te devuelva la IA</label>
-                                <textarea id="adm-ai-json-input" class="admin-textarea code-font" style="height:200px;" placeholder='{"title": "...", "name": "...", "steps": [...]}'></textarea>
+                                <textarea id="adm-ai-json-input" class="admin-textarea code-font" style="height:200px;"
+                                    placeholder='{"title": "...", "name": "...", "steps": [...]}'></textarea>
                             </div>
 
-                            <button id="adm-ai-process" class="control-btn primary admin-btn" style="width:100%;border-radius:12px;margin-top:1rem;">
+                            <button id="adm-ai-process" class="control-btn primary admin-btn"
+                                style="width:100%;border-radius:12px;margin-top:1rem;">
                                 ⬇️ Leer JSON e ir al Editor
                             </button>
                             <p id="adm-ai-error-msg" class="admin-msg error"></p>
@@ -466,59 +516,26 @@
 
     <!-- SVG FILTER FOR LIQUID GLASS -->
     <svg style="display: none">
-      <filter
-        id="glass-distortion"
-        x="0%"
-        y="0%"
-        width="100%"
-        height="100%"
-        filterUnits="objectBoundingBox"
-      >
-        <feTurbulence
-          type="fractalNoise"
-          baseFrequency="0.01 0.01"
-          numOctaves="1"
-          seed="5"
-          result="turbulence"
-        />
+        <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+            <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence" />
 
-        <feComponentTransfer in="turbulence" result="mapped">
-          <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
-          <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
-          <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
-        </feComponentTransfer>
+            <feComponentTransfer in="turbulence" result="mapped">
+                <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+                <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+                <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+            </feComponentTransfer>
 
-        <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+            <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
 
-        <feSpecularLighting
-          in="softMap"
-          surfaceScale="5"
-          specularConstant="1"
-          specularExponent="100"
-          lighting-color="white"
-          result="specLight"
-        >
-          <fePointLight x="-200" y="-200" z="300" />
-        </feSpecularLighting>
+            <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100"
+                lighting-color="white" result="specLight">
+                <fePointLight x="-200" y="-200" z="300" />
+            </feSpecularLighting>
 
-        <feComposite
-          in="specLight"
-          operator="arithmetic"
-          k1="0"
-          k2="1"
-          k3="1"
-          k4="0"
-          result="litImage"
-        />
+            <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
 
-        <feDisplacementMap
-          in="SourceGraphic"
-          in2="softMap"
-          scale="150"
-          xChannelSelector="R"
-          yChannelSelector="G"
-        />
-      </filter>
+            <feDisplacementMap in="SourceGraphic" in2="softMap" scale="150" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
     </svg>
 
     <!-- Cero dependencias externas. Solo un archivo JS puro y duro. -->
@@ -530,6 +547,14 @@
     <script src="js/data/TEMA5.js"></script>
     <script src="js/data/TEMA6.js"></script>
     <script src="js/app.js"></script>
+
+    <!--
+        IMPORTANTE: Toggle y backdrop en el body, NO dentro de #main-app.
+        Cualquier ancestro con transform/filter/will-change rompe position:fixed.
+        Al estar aquí como hijos directos de body, fixed = viewport siempre.
+    -->
+    <div id="mobile-sidebar-backdrop"></div>
+    <button id="mobile-sidebar-toggle" aria-label="Abrir menú de temas"></button>
 </body>
 
 </html>

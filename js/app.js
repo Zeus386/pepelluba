@@ -24,21 +24,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     window[`TEMA${k}_PROOFS`] = parsed[k];
                 });
             }
-        } catch(e) { console.warn('Admin cache parse error', e); }
+        } catch (e) { console.warn('Admin cache parse error', e); }
     })();
 
     const state = {
-        themes: Object.keys(window.EXERCISES_DATA || {}).sort((a,b) => Number(a) - Number(b)),
+        themes: Object.keys(window.EXERCISES_DATA || {}).sort((a, b) => Number(a) - Number(b)),
         currentThemeId: null,
         currentExercise: null,
         currentStep: -1,
         sidebarInitialized: false,
-        proofs: { 
-            ...(window.TEMA1_PROOFS || {}), 
-            ...(window.TEMA2_PROOFS || {}), 
-            ...(window.TEMA3_PROOFS || {}), 
-            ...(window.TEMA4_PROOFS || {}), 
-            ...(window.TEMA5_PROOFS || {}), 
+        proofs: {
+            ...(window.TEMA1_PROOFS || {}),
+            ...(window.TEMA2_PROOFS || {}),
+            ...(window.TEMA3_PROOFS || {}),
+            ...(window.TEMA4_PROOFS || {}),
+            ...(window.TEMA5_PROOFS || {}),
             ...(window.TEMA6_PROOFS || {})
         }
     };
@@ -96,14 +96,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (htmlEl.classList.contains('dark-mode-preload')) {
             htmlEl.classList.remove('dark-mode-preload');
         }
-        
+
         DOM.themeToggles.forEach(t => {
             t.checked = isDark;
             t.onchange = () => { // Use onchange for simpler assignment
                 const checked = t.checked;
                 // Sync all toggles to the same state
                 DOM.themeToggles.forEach(other => other.checked = checked);
-                
+
                 if (checked) {
                     document.body.classList.add('dark-mode');
                     htmlEl.classList.remove('dark-mode-preload');
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cursor.classList.add('hover');
             }
         });
-        
+
         document.body.addEventListener('mouseout', (e) => {
             if (e.target.closest('button, a, input, .wiki-subsummary, .exercise-card, .light-switch, .icon-btn')) {
                 cursor.classList.remove('hover');
@@ -161,6 +161,14 @@ document.addEventListener('DOMContentLoaded', () => {
             mobileSidebarBackdrop.classList.remove('visible');
         }
         DOM.screens.mainApp.classList.remove('sidebar-open');
+        document.body.classList.remove('sidebar-open'); // para el selector del toggle (fuera de main-app)
+    }
+
+    // Mostrar semi-dot toggle cuando el app está activo en móvil
+    function showMobileToggle() {
+        if (mobileSidebarToggle && window.matchMedia('(max-width: 1024px)').matches) {
+            mobileSidebarToggle.style.display = 'flex';
+        }
     }
 
     if (mobileSidebarToggle && mobileSidebarBackdrop) {
@@ -168,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebar.classList.add('open');
             mobileSidebarBackdrop.classList.add('visible');
             DOM.screens.mainApp.classList.add('sidebar-open');
+            document.body.classList.add('sidebar-open'); // para el toggle que vive en body
         });
 
         mobileSidebarBackdrop.addEventListener('click', closeMobileSidebar);
@@ -229,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 1. ANIMACIONES NATIVAS (Web Animations API)
     // ==========================================
-    
+
     async function playIntroSequence() {
         // Fase 1: Aparece @pepelluba
         await DOM.intro.text.animate([
@@ -242,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Fase 2: Transición de Lógica Matemática y subtítulo
         DOM.intro.reveal.classList.remove('hidden');
-        
+
         DOM.intro.reveal.animate([
             { opacity: 0, transform: 'translate3d(0, -20px, 0)' },
             { opacity: 1, transform: 'translate3d(0, 0, 0)' }
@@ -260,26 +269,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const exitAnim = DOM.screens.intro.animate([
                 { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' },
                 { opacity: 0, transform: 'scale(1.1)', filter: 'blur(15px)' }
-            ], { 
-                duration: 600, 
-                easing: 'cubic-bezier(0.22, 1, 0.36, 1)', 
-                fill: 'forwards' 
+            ], {
+                duration: 600,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                fill: 'forwards'
             });
             await exitAnim.finished;
-            exitAnim.cancel(); // Cancel after finished to let class styles take over
+            exitAnim.cancel();
         }
-        
+
+        // BUGFIX: limpiar clase direct-logica para que el CSS normal tome el control
+        document.documentElement.classList.remove('direct-logica');
+
         DOM.screens.intro.classList.replace('active', 'hidden');
         DOM.screens.mainApp.classList.replace('hidden', 'active');
+        sidebar.classList.add('active');
         DOM.globalHeader.classList.remove('hidden-element');
-        
+        if (mobileSidebarToggle) mobileSidebarToggle.style.display = 'flex';
+
         if (withAnimation) {
             DOM.screens.mainApp.animate([
                 { opacity: 0, transform: 'translate3d(30px, 0, 0) scale(0.98)' },
                 { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' }
             ], { duration: 600, easing: 'ease-out', fill: 'forwards' });
-        } 
-        
+            // La CSS transition del sidebar ya maneja la animación suave vía .active class
+        } else {
+            // Fuerza visibilidad inmediata si no hay animación (carga directa)
+            DOM.screens.mainApp.style.opacity = '1';
+            DOM.screens.mainApp.style.transform = 'translate3d(0, 0, 0) scale(1)';
+        }
         if (!state.sidebarInitialized) {
             renderSidebar();
             state.sidebarInitialized = true;
@@ -297,10 +315,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const exitAnim = DOM.screens.mainApp.animate([
                 { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' },
                 { opacity: 0, transform: 'scale(0.95)', filter: 'blur(15px)' }
-            ], { 
-                duration: 500, 
-                easing: 'cubic-bezier(0.22, 1, 0.36, 1)', 
-                fill: 'forwards' 
+            ], {
+                duration: 500,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                fill: 'forwards'
             });
             await exitAnim.finished;
             exitAnim.cancel();
@@ -309,6 +327,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.classList.remove('direct-logica');
         DOM.globalHeader.classList.add('hidden-element');
         DOM.screens.mainApp.classList.replace('active', 'hidden');
+        sidebar.classList.remove('active');
+        if (mobileSidebarToggle) mobileSidebarToggle.style.display = 'none';
+        closeMobileSidebar();
         DOM.screens.intro.classList.replace('hidden', 'active');
 
         // Reset manual
@@ -342,18 +363,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Router Multinivel (Intro / Main / Exercise)
     function router() {
         const hash = window.location.hash;
-        
+
         if (hash.startsWith('#/logica')) {
             // Mostrar App
             const wasInIntro = DOM.screens.intro.classList.contains('active');
+            const isDirect = document.documentElement.classList.contains('direct-logica');
             if (wasInIntro) {
-                transitionToApp(true);
+                // Si venimos de carga directa con html.direct-logica, evitamos animación lenta
+                transitionToApp(!isDirect);
             } else {
                 // Si ya estamos en la app pero estamos ocultos (ej: carga directa)
                 if (!DOM.screens.mainApp.classList.contains('active')) {
-                   DOM.screens.intro.classList.replace('active', 'hidden');
-                   DOM.screens.mainApp.classList.replace('hidden', 'active');
-                   DOM.globalHeader.classList.remove('hidden-element');
+                    document.documentElement.classList.remove('direct-logica'); // cleanup
+                    DOM.screens.intro.classList.replace('active', 'hidden');
+                    DOM.screens.mainApp.classList.replace('hidden', 'active');
+                    DOM.screens.mainApp.style.opacity = '1';
+                    DOM.screens.mainApp.style.transform = 'translate3d(0, 0, 0) scale(1)';
+                    sidebar.classList.add('active');
+                    if (mobileSidebarToggle) mobileSidebarToggle.style.display = 'flex';
+                    DOM.globalHeader.classList.remove('hidden-element');
                 }
                 if (!state.sidebarInitialized) {
                     renderSidebar();
@@ -382,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (wasInApp) {
                 transitionToIntro(true);
             } else {
-                showIntro(false); // Carga inicial
+                showIntro(true); // Carga inicial: ahora sí reproduce la animación
             }
         }
     }
@@ -426,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let adminLongPressTimer;
         let isAdminFired = false;
-        
+
         // Empezar a contar
         wikiBtn.addEventListener('pointerdown', (e) => {
             // Solo click primario
@@ -441,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cancelLongPress = () => clearTimeout(adminLongPressTimer);
         wikiBtn.addEventListener('pointerup', cancelLongPress);
         wikiBtn.addEventListener('pointerleave', cancelLongPress);
-        
+
         wikiBtn.onclick = (e) => {
             cancelLongPress();
             if (isAdminFired) {
@@ -458,7 +486,10 @@ document.addEventListener('DOMContentLoaded', () => {
             wikiBtn.classList.add('active');
             state.currentThemeId = null;
             openWikiView();
-            if(window.innerWidth <= 850) closeMobileSidebar();
+            // En móvil/tablet cerramos la sidebar al navegar a la guía
+            if (window.matchMedia('(max-width: 1024px)').matches) {
+                closeMobileSidebar();
+            }
         };
         frag.appendChild(wikiBtn);
 
@@ -475,51 +506,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.classList.add('active');
                 state.currentThemeId = themeId;
                 renderThemeEjercicios();
-                if(window.innerWidth <= 850) closeMobileSidebar();
+                // En móvil/tablet (mismo breakpoint que el CSS: 1024px) se vuelve a contraer la sidebar
+                if (window.matchMedia('(max-width: 1024px)').matches) {
+                    closeMobileSidebar();
+                }
             };
             DOM.themeBtns.push(btn);
             frag.appendChild(btn);
         });
         DOM.themeBtns.push(wikiBtn); // Track wikiBtn too
-        
+
         DOM.themeNav.innerHTML = '';
         DOM.themeNav.appendChild(frag);
-        
+
         // Iniciar en la Guía por defecto
         openWikiView();
     }
 
     function openWikiView() {
+        const alreadyActive = DOM.views.wiki.classList.contains('active-view');
+
         if (DOM.views.exercises.classList.contains('active-view')) DOM.views.exercises.classList.replace('active-view', 'hidden-view');
         if (DOM.views.isabelle.classList.contains('active-view')) DOM.views.isabelle.classList.replace('active-view', 'hidden-view');
-        
         if (DOM.adminView && DOM.adminView.classList.contains('active-view')) DOM.adminView.classList.replace('active-view', 'hidden-view');
-        
+
         DOM.views.wiki.classList.remove('hidden-view');
         DOM.views.wiki.classList.add('active-view');
 
-        DOM.views.wiki.animate([
-            { opacity: 0, transform: 'translate3d(0, 10px, 0)' },
-            { opacity: 1, transform: 'translate3d(0, 0, 0)' }
-        ], { duration: 400, easing: 'ease-out' });
+        // Solo animar si no estaba ya activa (evita re-animación en carga directa)
+        if (!alreadyActive) {
+            DOM.views.wiki.animate([
+                { opacity: 0, transform: 'translate3d(0, 10px, 0)' },
+                { opacity: 1, transform: 'translate3d(0, 0, 0)' }
+            ], { duration: 400, easing: 'ease-out' });
+        }
     }
 
     function renderThemeEjercicios() {
         if (!state.currentThemeId) return;
-        
+
         if (DOM.views.wiki.classList.contains('active-view')) DOM.views.wiki.classList.replace('active-view', 'hidden-view');
         if (DOM.views.isabelle.classList.contains('active-view')) DOM.views.isabelle.classList.replace('active-view', 'hidden-view');
-        
+
         if (DOM.adminView && DOM.adminView.classList.contains('active-view')) DOM.adminView.classList.replace('active-view', 'hidden-view');
-        
+
         DOM.views.exercises.classList.remove('hidden-view');
         DOM.views.exercises.classList.add('active-view');
 
         const themeData = window.EXERCISES_DATA[state.currentThemeId];
         DOM.currentThemeTitle.textContent = themeData.title || `Tema ${state.currentThemeId}`;
-        
+
         const frag = document.createDocumentFragment();
-        
+
         // Ordenar ejercicios
         let exEntries = Object.entries(themeData.exercises).sort((a, b) => {
             return parseInt(a[0].replace('exe', '')) - parseInt(b[0].replace('exe', ''));
@@ -529,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'exercise-card liquidGlass-wrapper';
             const num = exKey.replace('exe', '');
-            
+
             card.innerHTML = `
                 <div class="liquidGlass-effect"></div>
                 <div class="liquidGlass-tint"></div>
@@ -538,7 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h4>${num.padStart(2, '0')}</h4>
                 </div>
             `;
-            
+
             // Animación Holográfica 3D Eficiente
             let cardRect = null;
             card.addEventListener("pointerenter", () => {
@@ -551,19 +589,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const hh = cardRect.height / 2;
                 const ratioX = (e.clientX - (cardRect.x + hw)) / hw;
                 const ratioY = (e.clientY - (cardRect.y + hh)) / hh;
-                
+
                 card.style.setProperty("--ratio-x", ratioX);
                 card.style.setProperty("--ratio-y", ratioY);
                 card.style.setProperty("--correction", "0%");
             }, { passive: true });
-            
+
             card.addEventListener("pointerleave", () => {
                 cardRect = null;
                 card.style.setProperty("--ratio-x", 0);
                 card.style.setProperty("--ratio-y", 0);
                 card.style.setProperty("--correction", "100%");
             });
-            
+
             card.onclick = () => {
                 window.location.hash = `#/logica/${exData.name}`;
             };
@@ -572,7 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         DOM.exercisesGrid.innerHTML = '';
         DOM.exercisesGrid.appendChild(frag);
-        
+
         // Pequeño fade in de los ejercicios
         DOM.exercisesGrid.animate([
             { opacity: 0, transform: 'translate3d(0, 10px, 0)' },
@@ -586,7 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openIsabelleView(exMetadata, updateHistory = true) {
         if (updateHistory) window.location.hash = `#/logica/${exMetadata.name}`;
-        
+
         const proofId = exMetadata.name;
         const proofData = state.proofs[proofId];
 
@@ -607,7 +645,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         DOM.views.exercises.classList.replace('active-view', 'hidden-view');
         DOM.views.wiki.classList.replace('active-view', 'hidden-view');
-        
+
         const adminView = document.getElementById('admin-view');
         if (adminView && adminView.classList.contains('active-view')) adminView.classList.replace('active-view', 'hidden-view');
 
@@ -634,7 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const keywords = /\b(lemma|assumes|shows|proof|assume|hence|from|with|show|qed|have|by|auto|next|rule|contradiction)\b/g;
         let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         html = html.replace(keywords, '<span class="keyword">$1</span>');
-        
+
         highlights.forEach(word => {
             const regex = new RegExp(`\\b(${word})\\b`, 'g');
             html = html.replace(regex, `<span class="highlight">${word}</span>`);
@@ -652,14 +690,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Usar Fragment para DOM ultrarrápido (solo inyectar nueva línea si avanza, pero por sencillez de estructura reconstruimos limpio)
         // Para máxima optimización en steps grandes se haría append, pero el DOM aquí es muy pequeño
         const frag = document.createDocumentFragment();
-        
+
         for (let i = 0; i <= stepIdx; i++) {
             const lines = steps[i].code.split('\n');
             lines.forEach((line) => {
                 const div = document.createElement('div');
                 div.className = 'isabelle-item visible';
                 if (i === stepIdx) div.classList.add('active-line');
-                
+
                 div.innerHTML = highlightSyntax(line, i === stepIdx ? steps[i].highlights : []);
                 frag.appendChild(div);
             });
@@ -678,10 +716,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Actualizar textos
         DOM.isabelle.explanation.innerHTML = currentData.explanation;
-        
+
         // Hipotéis
         if (currentData.activeHyp && currentData.activeHyp.length > 0) {
-            DOM.isabelle.hypotheses.innerHTML = currentData.activeHyp.map(hyp => 
+            DOM.isabelle.hypotheses.innerHTML = currentData.activeHyp.map(hyp =>
                 `<div class="hypothesis-box">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-text-muted)" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
                     <span>${hyp}</span>
@@ -694,9 +732,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Barra de progreso y botones
         const pct = ((stepIdx + 1) / steps.length) * 100;
         DOM.isabelle.progress.style.width = `${pct}%`;
-        
+
         DOM.isabelle.btnPrev.disabled = (stepIdx === -1);
-        
+
         if (stepIdx === steps.length - 1) {
             // Fin de la prueba
             DOM.isabelle.btnNext.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
@@ -805,13 +843,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (DOM.views.wiki.classList.contains('active-view')) DOM.views.wiki.classList.replace('active-view', 'hidden-view');
         adminDOM.view.classList.remove('hidden-view');
         adminDOM.view.classList.add('active-view');
-        adminDOM.view.animate([{opacity: 0}, {opacity: 1}], {duration: 300});
+        adminDOM.view.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300 });
 
         adminDOM.ghUser.value = 'Zeus386';
         adminDOM.ghRepo.value = 'pepelluba';
         const savedCreds = localStorage.getItem('pepeweb_gh_creds');
         if (savedCreds) {
-            try { const c = JSON.parse(savedCreds); if (c.token) adminDOM.ghToken.value = c.token; adminDOM.ghRemember.checked = true; } catch(e){}
+            try { const c = JSON.parse(savedCreds); if (c.token) adminDOM.ghToken.value = c.token; adminDOM.ghRemember.checked = true; } catch (e) { }
         }
     }
 
@@ -867,7 +905,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     adminDOM.connectedUser.textContent = `${user}/${repo}`;
                     admRenderThemes();
                 } else { throw new Error('Token inválido o repo no encontrado.'); }
-            } catch(err) { adminDOM.authMsg.className = 'admin-msg error'; adminDOM.authMsg.textContent = err.message; }
+            } catch (err) { adminDOM.authMsg.className = 'admin-msg error'; adminDOM.authMsg.textContent = err.message; }
             finally { adminDOM.loginBtn.disabled = false; }
         });
     }
@@ -877,7 +915,7 @@ document.addEventListener('DOMContentLoaded', () => {
         admShowScreen(adminDOM.screenThemes);
         adminDOM.themeList.innerHTML = '';
         const themes = window.EXERCISES_DATA || {};
-        Object.keys(themes).sort((a,b) => Number(a)-Number(b)).forEach(id => {
+        Object.keys(themes).sort((a, b) => Number(a) - Number(b)).forEach(id => {
             const card = document.createElement('div');
             card.className = 'adm-theme-card';
             card.textContent = `Tema ${id}`;
@@ -893,7 +931,7 @@ document.addEventListener('DOMContentLoaded', () => {
         adminDOM.exTitle.textContent = themeData.title || `Tema ${admState.themeId}`;
         adminDOM.exList.innerHTML = '';
 
-        const entries = Object.entries(themeData.exercises || {}).sort((a,b) => parseInt(a[0].replace('exe','')) - parseInt(b[0].replace('exe','')));
+        const entries = Object.entries(themeData.exercises || {}).sort((a, b) => parseInt(a[0].replace('exe', '')) - parseInt(b[0].replace('exe', '')));
         if (entries.length === 0) {
             adminDOM.exList.innerHTML = '<p style="color:var(--c-text-muted);font-style:italic;text-align:center;padding:2rem;">Sin ejercicios. Pulsa el botón de abajo para crear uno.</p>';
         }
@@ -903,7 +941,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.className = 'adm-ex-item';
             item.innerHTML = `
                 <div class="adm-ex-info">
-                    <strong>${key.replace('exe','')}. ${ex.title}</strong>
+                    <strong>${key.replace('exe', '')}. ${ex.title}</strong>
                     <span>${ex.name} — ${ex.defaultMethod}</span>
                 </div>
                 <div class="adm-ex-actions">
@@ -919,10 +957,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (adminDOM.backThemes) adminDOM.backThemes.addEventListener('click', admRenderThemes);
     if (adminDOM.newExBtn) adminDOM.newExBtn.addEventListener('click', () => {
         const entries = Object.keys(window.EXERCISES_DATA[admState.themeId].exercises || {});
-        const maxNum = entries.reduce((max, k) => Math.max(max, parseInt(k.replace('exe','')) || 0), 0);
+        const maxNum = entries.reduce((max, k) => Math.max(max, parseInt(k.replace('exe', '')) || 0), 0);
         admState.exKey = `exe${maxNum + 1}`;
         admState.isNew = true;
-        admOpenEditor({ title: '', name: `${admState.themeId}_${maxNum+1}`, defaultMethod: '' });
+        admOpenEditor({ title: '', name: `${admState.themeId}_${maxNum + 1}`, defaultMethod: '' });
     });
 
     // Sub-Screen 4: Import AI Logic
@@ -978,20 +1016,20 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
 
             // Route to editor
             const entries = Object.keys(window.EXERCISES_DATA[admState.themeId].exercises || {});
-            const maxNum = entries.reduce((max, k) => Math.max(max, parseInt(k.replace('exe','')) || 0), 0);
+            const maxNum = entries.reduce((max, k) => Math.max(max, parseInt(k.replace('exe', '')) || 0), 0);
             admState.exKey = `exe${maxNum + 1}`;
             admState.isNew = true;
-            
+
             // Put it in local fake state so the editor can load the steps
             state.proofs[aiData.name] = { steps: aiData.steps };
 
-            admOpenEditor({ 
-                title: aiData.title, 
-                name: aiData.name, 
-                defaultMethod: aiData.defaultMethod || "Deducción por Tareas" 
+            admOpenEditor({
+                title: aiData.title,
+                name: aiData.name,
+                defaultMethod: aiData.defaultMethod || "Deducción por Tareas"
             });
 
-        } catch(err) {
+        } catch (err) {
             adminDOM.aiErrorMsg.textContent = "Error JSON: " + err.message;
         }
     });
@@ -1103,7 +1141,7 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
 
                 // Return to exercise list after success
                 setTimeout(() => admRenderExercises(), 1500);
-            } catch(err) {
+            } catch (err) {
                 adminDOM.saveMsg.className = 'admin-msg error';
                 adminDOM.saveMsg.textContent = err.message;
             } finally {
@@ -1116,7 +1154,7 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
     async function admDeleteExercise(exKey, exData) {
         // Temporarily show native cursor for the confirm dialog
         document.body.classList.add('native-cursor');
-        const confirmed = confirm(`¿Seguro que quieres borrar el ejercicio "${exKey.replace('exe','')}: ${exData.title}"?`);
+        const confirmed = confirm(`¿Seguro que quieres borrar el ejercicio "${exKey.replace('exe', '')}: ${exData.title}"?`);
         document.body.classList.remove('native-cursor');
         if (!confirmed) return;
 
@@ -1147,7 +1185,7 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
             admSaveLocalCache();
 
             admRenderExercises();
-        } catch(err) {
+        } catch (err) {
             document.body.classList.add('native-cursor');
             alert('Error al borrar: ' + err.message);
             document.body.classList.remove('native-cursor');
@@ -1166,7 +1204,7 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
                 proofsByTema[temaNum][k] = state.proofs[k];
             });
             localStorage.setItem('pepeweb_admin_proofs', JSON.stringify(proofsByTema));
-        } catch(e) { console.warn('Error saving admin cache', e); }
+        } catch (e) { console.warn('Error saving admin cache', e); }
     }
 
     // Serializers: Object → JS source code
@@ -1174,7 +1212,7 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
 
     function buildConfigJS(data) {
         let out = '// main_config.js - Configuración visual y de metadatos de los ejercicios\n\nconst EXERCISES_DATA = {\n';
-        Object.keys(data).sort((a,b) => Number(a)-Number(b)).forEach(tid => {
+        Object.keys(data).sort((a, b) => Number(a) - Number(b)).forEach(tid => {
             const t = data[tid];
             out += `    "${tid}": {\n        title: "${escJS(t.title)}",\n        exercises: {\n`;
             Object.entries(t.exercises || {}).forEach(([ek, ex]) => {
@@ -1197,8 +1235,8 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
                 out += `            {\n`;
                 out += `                code: "${escJS(step.code)}",\n`;
                 out += `                explanation: "${escJS(step.explanation)}",\n`;
-                out += `                activeHyp: [${(step.activeHyp||[]).map(h => `"${escJS(h)}"`).join(', ')}],\n`;
-                out += `                highlights: [${(step.highlights||[]).map(h => `"${escJS(h)}"`).join(', ')}]\n`;
+                out += `                activeHyp: [${(step.activeHyp || []).map(h => `"${escJS(h)}"`).join(', ')}],\n`;
+                out += `                highlights: [${(step.highlights || []).map(h => `"${escJS(h)}"`).join(', ')}]\n`;
                 out += `            },\n`;
             });
             out += `        ]\n    },\n`;

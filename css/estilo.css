@@ -1401,3 +1401,139 @@ body.dark-mode .adm-step-card textarea {
     margin-bottom: 0.3rem;
 }
 
+/* ==========================================
+   MOBILE & TABLET RESPONSIVE
+   ========================================== */
+@media (max-width: 850px) {
+    /* Main Layout & Scrolling */
+    #main-app {
+        height: auto;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    /* Move Sidebar to Bottom Horizontal Dock */
+    #sidebar {
+        top: auto;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto;
+        max-width: 90vw;
+    }
+
+    .sidebar-dock {
+        flex-direction: row;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+    }
+
+    .sidebar-dock-inner {
+        flex-direction: row;
+        gap: 8px;
+        padding: 0;
+    }
+
+    .sidebar-divider {
+        width: 1.5px;
+        height: 24px;
+        margin: 0 6px;
+    }
+
+    #theme-nav {
+        flex-direction: row;
+        gap: 6px;
+    }
+
+    /* Scale Down Theme Buttons for small screens */
+    .theme-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 0.85rem;
+        border-radius: 12px;
+    }
+
+    /* Content Area Adjustment */
+    #content-area {
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .view {
+        position: relative;
+        left: 0;
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+        padding: 0 1rem 7rem 1rem; /* Extra padding bottom to avoid dock overlap */
+    }
+
+    .view.hidden-view {
+        /* On mobile, hidden views must not take up vertical spcae */
+        display: none !important;
+    }
+
+    /* Header Adjustments */
+    .global-header {
+        height: 80px;
+        padding: 0 1rem;
+        position: relative; /* Let it scroll naturally on mobile */
+    }
+
+    #global-back {
+        margin-top: 1rem;
+    }
+
+    .section-header, .isabelle-header {
+        height: auto;
+        padding: 1rem 0;
+        position: relative; /* Unpin from top to save vertical space */
+        margin-bottom: 1.5rem;
+    }
+
+    /* Typography & Intro Screen Scaling */
+    h1#intro-text {
+        font-size: 3.5rem;
+    }
+
+    /* Isabelle Workspace Stacking */
+    .isabelle-workspace {
+        flex-direction: column;
+        padding: 0;
+        height: auto;
+        overflow: visible;
+        gap: 1.5rem;
+    }
+
+    .panel {
+        padding: 1.5rem;
+        height: auto;
+        overflow: visible;
+        contain: none; /* Need content to expand naturally */
+    }
+
+    .code-panel {
+        border-right: none;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        min-height: 300px; /* Give it enough space */
+    }
+
+    body.dark-mode .code-panel {
+        border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+
+    /* Controls adjustments */
+    .controls {
+        position: static;
+        margin-top: 2rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    /* Wiki Adjustments */
+    .wiki-content {
+        height: auto !important; /* Override inline height from style tag */
+        padding-right: 0;
+    }
+}
+

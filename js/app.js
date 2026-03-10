@@ -153,27 +153,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     function initBackgroundParallax() {
         let raf = 0;
-        let nextX = 0;
-        let nextY = 0;
+        let targetX = 0;
+        let targetY = 0;
+        let currentX = 0;
+        let currentY = 0;
         const strength = 12; // px (sutil/clean)
 
         function commit() {
-            raf = 0;
-            document.documentElement.style.setProperty('--bg-x', `${nextX}px`);
-            document.documentElement.style.setProperty('--bg-y', `${nextY}px`);
+            // Lerp para suavidad extrema
+            currentX += (targetX - currentX) * 0.08;
+            currentY += (targetY - currentY) * 0.08;
+
+            document.documentElement.style.setProperty('--bg-x', `${currentX}px`);
+            document.documentElement.style.setProperty('--bg-y', `${currentY}px`);
+
+            if (Math.abs(targetX - currentX) > 0.01 || Math.abs(targetY - currentY) > 0.01) {
+                raf = requestAnimationFrame(commit);
+            } else {
+                raf = 0;
+            }
         }
 
         document.addEventListener('mousemove', (e) => {
-            const x = (e.clientX / window.innerWidth - 0.5) * strength * 2;
-            const y = (e.clientY / window.innerHeight - 0.5) * strength * 2;
-            nextX = x;
-            nextY = y;
+            targetX = (e.clientX / window.innerWidth - 0.5) * strength * 2;
+            targetY = (e.clientY / window.innerHeight - 0.5) * strength * 2;
             if (!raf) raf = requestAnimationFrame(commit);
-        });
+        }, { passive: true });
 
         document.addEventListener('mouseleave', () => {
-            document.documentElement.style.setProperty('--bg-x', `0px`);
-            document.documentElement.style.setProperty('--bg-y', `0px`);
+            targetX = 0;
+            targetY = 0;
+            if (!raf) raf = requestAnimationFrame(commit);
         });
     }
 

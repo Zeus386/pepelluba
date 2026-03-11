@@ -368,8 +368,20 @@
                     if (res.ok) {
                         if (adminDOM.ghRemember.checked) localStorage.setItem('pepeweb_gh_creds', JSON.stringify({ token }));
                         else localStorage.removeItem('pepeweb_gh_creds');
-                        adminDOM.loginBox.classList.add('hidden');
-                        adminDOM.dashboard.classList.remove('hidden');
+                        adminDOM.loginBox.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        adminDOM.loginBox.style.opacity = '0';
+                        adminDOM.loginBox.style.transform = 'translateY(-10px)';
+                        
+                        setTimeout(() => {
+                            adminDOM.loginBox.classList.add('hidden');
+                            adminDOM.dashboard.classList.remove('hidden');
+                            adminDOM.dashboard.style.opacity = '0';
+                            adminDOM.dashboard.style.transform = 'translateY(10px)';
+                            void adminDOM.dashboard.offsetWidth;
+                            adminDOM.dashboard.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                            adminDOM.dashboard.style.opacity = '1';
+                            adminDOM.dashboard.style.transform = 'translateY(0)';
+                        }, 300);
                         adminDOM.connectedUser.textContent = `${user}/${repo}`;
                         admRenderThemes();
                     } else { throw new Error('Token inválido o repo no encontrado.'); }
@@ -537,10 +549,31 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
     }
 
     function admShowScreen(screen) {
-        [adminDOM.screenThemes, adminDOM.screenExercises, adminDOM.screenEditor, adminDOM.screenImportAi].forEach(s => {
-            if (s) s.classList.add('hidden');
+        const screens = [adminDOM.screenThemes, adminDOM.screenExercises, adminDOM.screenEditor, adminDOM.screenImportAi];
+        
+        let waitTime = 0;
+        screens.forEach(s => {
+            if (s && s !== screen && !s.classList.contains('hidden')) {
+                s.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+                s.style.opacity = '0';
+                s.style.transform = 'translateY(-10px)';
+                s.style.pointerEvents = 'none';
+                setTimeout(() => s.classList.add('hidden'), 200);
+                waitTime = 210;
+            }
         });
-        if (screen) screen.classList.remove('hidden');
+
+        if (screen) {
+            setTimeout(() => {
+                screen.classList.remove('hidden');
+                // Force reflow
+                void screen.offsetWidth;
+                screen.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                screen.style.opacity = '1';
+                screen.style.transform = 'translateY(0)';
+                screen.style.pointerEvents = 'auto';
+            }, waitTime);
+        }
     }
 
     function admRenderThemes() {
@@ -1015,6 +1048,7 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
         sidebarSubmenuNav = el.querySelector('#sidebar-submenu-nav');
     }
 
+    let submenuClearTimer = null;
     function closeSidebarSubmenu() {
         if (!sidebarSubmenu) return;
         sidebarSubmenu.classList.remove('open');
@@ -1023,7 +1057,14 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
             sidebarSubmenuAnchorBtn.setAttribute('aria-expanded', 'false');
         }
         sidebarSubmenuAnchorBtn = null;
-        if (sidebarSubmenuNav) sidebarSubmenuNav.innerHTML = '';
+        if (sidebarSubmenuNav) {
+            if (submenuClearTimer) clearTimeout(submenuClearTimer);
+            submenuClearTimer = setTimeout(() => {
+                if (!sidebarSubmenu.classList.contains('open')) {
+                    sidebarSubmenuNav.innerHTML = '';
+                }
+            }, 350); // Wait for transition
+        }
     }
 
     function positionSidebarSubmenu() {
@@ -1214,9 +1255,9 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
     function syncMobileSidebarUI() {
         if (!mobileSidebarToggle) return;
         if (mobileSidebarMedia.matches && DOM.screens.mainApp.classList.contains('active')) {
-            mobileSidebarToggle.style.display = 'flex';
+            mobileSidebarToggle.classList.add('visible');
         } else {
-            mobileSidebarToggle.style.display = 'none';
+            mobileSidebarToggle.classList.remove('visible');
         }
         if (!mobileSidebarMedia.matches) closeMobileSidebar();
     }

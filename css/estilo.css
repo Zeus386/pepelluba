@@ -1977,24 +1977,37 @@ body.dark-mode .adm-step-card textarea {
         position: fixed !important;
         left: 0 !important;
         top: 50% !important;
-        transform: translateY(-50%) !important;
+        transform: translateY(-50%) translateX(-150%) !important; /* Start hidden */
+        opacity: 0;
+        pointer-events: none;
         width: 34px !important;
         height: 50px !important;
-        border-radius: 0 12px 12px 0 !important;
+        border-radius: 0 14px 14px 0 !important;
         background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(12px) saturate(180%);
         -webkit-backdrop-filter: blur(12px) saturate(180%);
         border: 1px solid rgba(0, 0, 0, 0.1);
         border-left: none;
         z-index: 9998 !important;
-        display: none;
+        display: flex; /* Always display flex */
         align-items: center;
         justify-content: center;
         cursor: pointer;
         box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
         color: var(--c-text-main);
-        transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+        transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease, box-shadow 0.4s ease;
         touch-action: manipulation;
+    }
+
+    #mobile-sidebar-toggle.visible {
+        transform: translateY(-50%) translateX(0) !important;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    #mobile-sidebar-toggle.visible:hover {
+        transform: translateY(-50%) !important;
+        box-shadow: 5px 0 22px rgba(0, 0, 0, 0.18);
     }
 
     #mobile-sidebar-toggle svg {
@@ -2048,8 +2061,9 @@ body.dark-mode .adm-step-card textarea {
 
     /* Ocultar toggle cuando sidebar está abierto */
     body.sidebar-open #mobile-sidebar-toggle {
-        transform: translateY(-50%) translateX(-110%) !important;
+        transform: translateY(-50%) translateX(-150%) !important;
         opacity: 0;
+        pointer-events: none;
     }
 
     /* ---- HEADER ---- */

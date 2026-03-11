@@ -2157,18 +2157,16 @@ body.dark-mode .adm-step-card textarea {
         width: 100%;
     }
 
-    /* Header Adjustments for more air and centering */
+    /* Header Adjustments optimized for mobile */
     .global-header {
-        height: 80px;
+        height: 55px;
         padding: 0 5%;
-        /* Symmetrical header padding */
         display: flex;
         align-items: center;
         justify-content: flex-start;
-        /* Align back button correctly */
+        width: 100%;
         max-width: 1400px;
         margin: 0 auto;
-        width: 100%;
     }
 
     #global-back {
@@ -2178,12 +2176,26 @@ body.dark-mode .adm-step-card textarea {
 
     .section-header,
     .isabelle-header {
-        margin-bottom: 2rem;
-        padding: 1rem 0;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem 0;
         text-align: center;
         width: 100%;
         max-width: 1100px;
-        /* Keep titles aligned with the content */
+    }
+
+    /* Fixed buttons for mobile */
+    .controls {
+        position: fixed !important;
+        bottom: env(safe-area-inset-bottom, 20px) !important;
+        right: env(safe-area-inset-right, 20px) !important;
+        z-index: 1000 !important;
+    }
+
+    .controls-left {
+        position: fixed !important;
+        bottom: env(safe-area-inset-bottom, 20px) !important;
+        left: env(safe-area-inset-left, 20px) !important;
+        z-index: 1000 !important;
     }
 }
 
@@ -2233,8 +2245,8 @@ body.dark-mode .adm-step-card textarea {
     }
 }
 
-/* Ocultar elementos móviles en desktop */
-@media (min-width: 1025px) {
+/* Ocultar elementos móviles en desktop (excepto pantallas tactiles) */
+@media (min-width: 1025px) and (pointer: fine) {
 
     #mobile-sidebar-toggle,
     #mobile-sidebar-backdrop {

@@ -99,6 +99,7 @@
 
     async function lazyLoadData() {
         if (state.dataLoaded) return;
+        console.log('PEPELLUBA: Starting data lazy-load...');
         
         const files = [
             'BOLETIN1', 'BOLETIN2', 'BOLETIN3', 'BOLETIN4', 'BOLETIN5',
@@ -110,36 +111,41 @@
             return new Promise((resolve) => {
                 const s = document.createElement('script');
                 s.src = `js/data/${f}.js`;
-                s.async = true;
-                s.onload = resolve;
-                s.onerror = (e) => {
-                    console.warn(`Failed to lazy load ${f}`, e);
+                s.async = false;
+                s.onload = () => {
+                    console.log(`PEPELLUBA: Managed to load script ${f}`);
                     resolve();
                 };
-                document.body.appendChild(s);
+                s.onerror = (e) => {
+                    console.warn(`PEPELLUBA: Error loading script ${f}`, e);
+                    resolve();
+                };
+                document.head.appendChild(s);
             });
         }));
 
-        state.proofs = {
-            ...(window.ALL_PROOFS || {}),
-            ...(window.BOLETIN1_PROOFS || {}),
-            ...(window.BOLETIN2_PROOFS || {}),
-            ...(window.BOLETIN3_PROOFS || {}),
-            ...(window.BOLETIN4_PROOFS || {}),
-            ...(window.BOLETIN5_PROOFS || {}),
-            ...(window.BOLETIN6_PROOFS || {}),
-            ...(window.BOLETIN7_PROOFS || {}),
-            ...(window.BOLETIN8_PROOFS || {}),
-            ...(window.BOLETIN9_PROOFS || {}),
-            ...(window.BOLETIN10_PROOFS || {}),
-            ...(window.BOLETIN11_PROOFS || {}),
-            ...(window.PRIMER_PARCIAL_PROOFS || {}),
-            ...(window.SEGUNDO_PARCIAL_PROOFS || {}),
-            ...(window.CONVOCATORIA_PROOFS || {})
-        };
-        
+        // Force a small tick to ensure script execution finishes 
+        await new Promise(r => setTimeout(r, 50));
+
+        window.ALL_PROOFS = window.ALL_PROOFS || {};
+        const sources = [
+            'BOLETIN1', 'BOLETIN2', 'BOLETIN3', 'BOLETIN4', 'BOLETIN5',
+            'BOLETIN6', 'BOLETIN7', 'BOLETIN8', 'BOLETIN9', 'BOLETIN10',
+            'BOLETIN11', 'PRIMER_PARCIAL', 'SEGUNDO_PARCIAL', 'CONVOCATORIA'
+        ];
+
+        sources.forEach(src => {
+            const varName = `${src}_PROOFS`;
+            if (window[varName]) {
+                // Merge into global ALL_PROOFS
+                Object.assign(window.ALL_PROOFS, window[varName]);
+            }
+        });
+
+        // Update state proofs from the consolidated global
+        state.proofs = { ...(window.ALL_PROOFS || {}) };
         state.dataLoaded = true;
-        console.log('PEPELLUBA: Data lazy-loaded successfully.');
+        console.log('PEPELLUBA: Data consolidated. Total proofs:', Object.keys(state.proofs).length);
     }
 
     function isHierarchicalConfig(cfg) {
@@ -2099,10 +2105,34 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
                 const parts = hash.split('/');
 
                 if (parts.length === 5) {
-                    window.location.hash = parts.slice(0, 4).join('/');
+                    // We are in an exercise view: #/logica/TX/relY/ExZ
+                    const themeIdPart = parts[2];
+                    const themeId = themeIdPart.startsWith('T') ? themeIdPart.slice(1) : themeIdPart;
+                    const themeData = window.EXERCISES_DATA?.[themeId];
+                    const relCount = Object.keys(themeData?.relations || {}).length;
+                    
+                    if (relCount === 1) {
+                        // Skip the relation part and go back to theme level (#/logica/TX)
+                        // which then is just one step from the main wiki.
+                        window.location.hash = parts.slice(0, 3).join('/');
+                    } else {
+                        // Go back to the exercises list of that specific relation
+                        window.location.hash = parts.slice(0, 4).join('/');
+                    }
                 } else if (parts.length === 4) {
-                    window.location.hash = parts.slice(0, 3).join('/');
+                    // We are in exercises list of a relation: #/logica/TX/relY
+                    const themeIdPart = parts[2];
+                    const themeId = themeIdPart.startsWith('T') ? themeIdPart.slice(1) : themeIdPart;
+                    const themeData = window.EXERCISES_DATA?.[themeId];
+                    const relCount = Object.keys(themeData?.relations || {}).length;
+
+                    if (relCount === 1) {
+                        window.location.hash = '#/logica'; // Skip redundant theme-home
+                    } else {
+                        window.location.hash = parts.slice(0, 3).join('/');
+                    }
                 } else if (parts.length === 3) {
+                    // We are in a theme view (#/logica/TX) or exams view (#/logica/EX)
                     if (['P1', 'P2', 'C'].includes(parts[2])) {
                         window.location.hash = '#/logica/EX';
                     } else {
@@ -2166,7 +2196,6 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
                      renderExamsMenu(!wasInIntro);
                      const exBtn = Array.from(document.querySelectorAll('#theme-nav .theme-btn')).find(b => b.textContent === 'EX');
                      
-                     // Only auto-open submenu if NOT in mobile or if we explicitly clicked it
                      if (!mobileSidebarMedia.matches) {
                          openSidebarSubmenuEx(exBtn || null);
                      }
@@ -2184,9 +2213,6 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
                          if (!mobileSidebarMedia.matches) {
                             openSidebarSubmenu(themeId, tBtn || null);
                          } else {
-                            // On mobile, if they just clicked the theme, we open the sidebar 
-                            // to show the options, but if they are navigating back, we close it.
-                            // The most consistent behavior is closing the sidebar upon successful view render.
                             closeMobileSidebar();
                          }
                      }

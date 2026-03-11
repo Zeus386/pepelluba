@@ -50,9 +50,25 @@ const EXERCISES_DATA = {
         title: "Tema 3: Sintaxis y semántica de la lógica de primer orden",
         relations: {
             "rel5": {
-                title: "Lógica de primer orden",
+                title: "R05: Deducción natural en lógica proposicional (III)",
                 exercises: {
-                    "exe1": { title: "Ejercicio base relación 5", name: "b5_e1", defaultMethod: "Deducción Natural" }
+                    "exe1": { title: "{ p ∧ q ⟶ r ∨ s, q ⟶ ¬s } ⊢ p ⟶ ¬q ∨ r", name: "b5_e1", defaultMethod: "Deducción Natural" },
+                    "exe2": { title: "⊢ (p ⟶ q) ⟶ ((¬p ⟶ q) ⟶ q)", name: "b5_e2", defaultMethod: "Deducción Natural" },
+                    "exe3": { title: "Inconsistencia: { ((p ⟶ q) ∨ r) ⟶ p, ¬p }", name: "b5_e3", defaultMethod: "Deducción Natural" },
+                    "exe4": { title: "⊢ (¬q ⟶ ¬p) ∨ (q ⟶ p)", name: "b5_e4", defaultMethod: "Deducción Natural" },
+                    "exe5": { title: "⊢ p ∨ (q ⟶ ¬(p ⟷ q))", name: "b5_e5", defaultMethod: "Deducción Natural" },
+                    "exe6": { title: "⊢ ((p ⟶ r) ∨ (q ⟶ s)) ⟶ ((p ∧ q) ⟶ (r ∨ s))", name: "b5_e6", defaultMethod: "Deducción Natural" },
+                    "exe7": { title: "{ p ∨ q ⟶ r ∧ s, ¬q ⟶ s } ⊢ ¬r ⟶ (s ∧ ¬q)", name: "b5_e7", defaultMethod: "Deducción Natural" },
+                    "exe8": { title: "{ p ⟶ (q ⟶ (r ∨ s)), q ∧ ¬r } ⊢ p ⟶ s", name: "b5_e8", defaultMethod: "Deducción Natural" },
+                    "exe9": { title: "{ p ∧ q ⟶ r, ¬q ∨ r ⟶ ¬s } ⊢ p ⟶ ¬s ∨ r", name: "b5_e9", defaultMethod: "Deducción Natural" },
+                    "exe10": { title: "{ p ∧ q ⟶ r, s ⟶ ¬r, ¬(¬p ∨ ¬s) } ⊢ ¬q", name: "b5_e10", defaultMethod: "Deducción Natural" },
+                    "exe11": { title: "{ p ⟶ ¬(q ∧ r), (q ⟶ ¬r) ⟶ s } ⊢ (p ⟶ r) ∨ s", name: "b5_e11", defaultMethod: "Deducción Natural" },
+                    "exe12": { title: "{ (q ∧ r) ⟶ p, ¬(p ⟶ r ∨ s) } ⊢ q ∨ (s ⟶ ¬r)", name: "b5_e12", defaultMethod: "Deducción Natural" },
+                    "exe13": { title: "{ p ⟶ ¬(q ∧ r), ¬p ⟶ (¬r ∨ s) } ⊢ q ⟶ r ⟶ s", name: "b5_e13", defaultMethod: "Deducción Natural" },
+                    "exe14": { title: "{ r ⟷ ¬(p ∨ q), (r ∧ ¬q) ⟶ s } ⊢ r ⟶ (s ∨ p)", name: "b5_e14", defaultMethod: "Deducción Natural" },
+                    "exe15": { title: "(p ∨ s) ⟷ ¬(q ∧ r) ⊢ (q ⟶ ¬r) ⟷ (¬s ⟶ p)", name: "b5_e15", defaultMethod: "Deducción Natural" },
+                    "exe16": { title: "{ (p ⟶ r) ⟶ (¬q ∨ s), ¬(p ∧ ¬r) } ⊢ q ⟶ s", name: "b5_e16", defaultMethod: "Deducción Natural" },
+                    "exe17": { title: "{ ¬(p ∧ ¬r) ⟶ (q ⟶ s), p ⟶ r } ⊢ ¬q ∨ s", name: "b5_e17", defaultMethod: "Deducción Natural" }
                 }
             }
         }

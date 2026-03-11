@@ -182,6 +182,120 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileSidebarBackdrop = document.getElementById('mobile-sidebar-backdrop');
     const sidebar = document.getElementById('sidebar');
     const mobileSidebarMedia = window.matchMedia('(max-width: 1024px), (hover: none) and (pointer: coarse)');
+    let sidebarSubmenu;
+    let sidebarSubmenuNav;
+    let sidebarSubmenuThemeId = null;
+    let sidebarSubmenuAnchorBtn = null;
+    let hasSubmenuGlobalListeners = false;
+
+    function ensureSidebarSubmenu() {
+        if (sidebarSubmenu && sidebarSubmenuNav) return;
+        sidebarSubmenu = document.getElementById('sidebar-submenu');
+        sidebarSubmenuNav = document.getElementById('sidebar-submenu-nav');
+        if (sidebarSubmenu && sidebarSubmenuNav) return;
+
+        const el = document.createElement('aside');
+        el.id = 'sidebar-submenu';
+        el.setAttribute('aria-label', 'Submenú');
+        el.innerHTML = `
+            <div class="liquidGlass-wrapper sidebar-dock">
+                <div class="liquidGlass-effect"></div>
+                <div class="liquidGlass-tint"></div>
+                <div class="liquidGlass-shine"></div>
+                <div class="liquidGlass-text sidebar-dock-inner">
+                    <nav id="sidebar-submenu-nav"></nav>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(el);
+        sidebarSubmenu = el;
+        sidebarSubmenuNav = el.querySelector('#sidebar-submenu-nav');
+    }
+
+    function closeSidebarSubmenu() {
+        if (!sidebarSubmenu) return;
+        sidebarSubmenu.classList.remove('open');
+        sidebarSubmenuThemeId = null;
+        if (sidebarSubmenuAnchorBtn) {
+            sidebarSubmenuAnchorBtn.setAttribute('aria-expanded', 'false');
+        }
+        sidebarSubmenuAnchorBtn = null;
+        if (sidebarSubmenuNav) sidebarSubmenuNav.innerHTML = '';
+    }
+
+    function positionSidebarSubmenu() {
+        if (!sidebarSubmenu || !sidebarSubmenu.classList.contains('open')) return;
+        if (!sidebar) return;
+        const anchorRect = sidebar.getBoundingClientRect();
+
+        sidebarSubmenu.style.left = `${Math.round(anchorRect.right + 12)}px`;
+
+        const submenuRect = sidebarSubmenu.getBoundingClientRect();
+        const viewportH = window.innerHeight || document.documentElement.clientHeight;
+        const minCenter = 16 + submenuRect.height / 2;
+        const maxCenter = viewportH - 16 - submenuRect.height / 2;
+        const desiredCenter = anchorRect.top + anchorRect.height / 2;
+        const center = Math.max(minCenter, Math.min(maxCenter, desiredCenter));
+        sidebarSubmenu.style.top = `${Math.round(center)}px`;
+    }
+
+    function openSidebarSubmenu(themeId, anchorBtn) {
+        ensureSidebarSubmenu();
+        if (!sidebarSubmenu || !sidebarSubmenuNav) return;
+
+        if (sidebarSubmenuThemeId === themeId) {
+            closeSidebarSubmenu();
+            return;
+        }
+
+        closeSidebarSubmenu();
+        sidebarSubmenuThemeId = themeId;
+        sidebarSubmenuAnchorBtn = anchorBtn || null;
+        if (sidebarSubmenuAnchorBtn) sidebarSubmenuAnchorBtn.setAttribute('aria-expanded', 'true');
+
+        const themeData = window.EXERCISES_DATA?.[themeId];
+        const relEntries = Object.entries(themeData?.relations || {}).sort((a, b) => {
+            const na = parseInt(String(a[0]).replace('rel', ''), 10) || 0;
+            const nb = parseInt(String(b[0]).replace('rel', ''), 10) || 0;
+            return na - nb;
+        });
+
+        const frag = document.createDocumentFragment();
+        relEntries.forEach(([relId, relData]) => {
+            const numRaw = String(relId).replace('rel', '');
+            const num = numRaw ? numRaw.padStart(2, '0') : '';
+            const bLabel = `B${num}`;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'theme-btn';
+            btn.textContent = bLabel;
+            btn.title = relData?.title || bLabel;
+            btn.onclick = () => {
+                closeSidebarSubmenu();
+                window.location.hash = `#/logica/T${themeId}/${relId}`;
+                if (mobileSidebarMedia.matches) closeMobileSidebar();
+            };
+            frag.appendChild(btn);
+        });
+        sidebarSubmenuNav.innerHTML = '';
+        sidebarSubmenuNav.appendChild(frag);
+
+        sidebarSubmenu.classList.add('open');
+        positionSidebarSubmenu();
+
+        if (!hasSubmenuGlobalListeners) {
+            hasSubmenuGlobalListeners = true;
+            document.addEventListener('pointerdown', (e) => {
+                if (!sidebarSubmenu || !sidebarSubmenu.classList.contains('open')) return;
+                const target = e.target;
+                if (sidebar && sidebar.contains(target)) return;
+                if (sidebarSubmenu.contains(target)) return;
+                closeSidebarSubmenu();
+            }, { passive: true });
+            window.addEventListener('resize', positionSidebarSubmenu, { passive: true });
+            window.addEventListener('orientationchange', positionSidebarSubmenu, { passive: true });
+        }
+    }
 
     function closeMobileSidebar() {
         sidebar.classList.remove('open');
@@ -190,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         DOM.screens.mainApp.classList.remove('sidebar-open');
         document.body.classList.remove('sidebar-open'); // para el selector del toggle (fuera de main-app)
+        closeSidebarSubmenu();
         if (mobileSidebarToggle) {
             mobileSidebarToggle.setAttribute('aria-expanded', 'false');
         }
@@ -448,6 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Router Multinivel (Intro / Main / Relations / Exercise)
     async function router() {
         const hash = window.location.hash;
+        closeSidebarSubmenu();
 
         if (hash.startsWith('#/logica')) {
             const parts = hash.split('/');
@@ -601,6 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 return;
             }
+            closeSidebarSubmenu();
             window.location.hash = '#/logica';
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
             wikiBtn.classList.add('active');
@@ -623,12 +740,22 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.className = 'theme-btn';
             btn.textContent = `T${themeId}`;
             btn.title = `Tema ${themeId}`;
+            btn.setAttribute('aria-expanded', 'false');
             btn.onclick = () => {
-                window.location.hash = `#/logica/T${themeId}`;
                 document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
+                const relCount = Object.keys(window.EXERCISES_DATA?.[themeId]?.relations || {}).length;
+                if (relCount > 1) {
+                    openSidebarSubmenu(themeId, btn);
+                } else {
+                    closeSidebarSubmenu();
+                    window.location.hash = `#/logica/T${themeId}`;
+                    if (window.matchMedia('(max-width: 1024px), (hover: none) and (pointer: coarse)').matches) {
+                        closeMobileSidebar();
+                    }
+                }
                 if (window.matchMedia('(max-width: 1024px), (hover: none) and (pointer: coarse)').matches) {
-                    closeMobileSidebar();
+                    positionSidebarSubmenu();
                 }
             };
             DOM.themeBtns.push(btn);
@@ -646,6 +773,7 @@ document.addEventListener('DOMContentLoaded', () => {
         exBtn.textContent = 'EX';
         exBtn.title = 'Exámenes';
         exBtn.onclick = () => {
+            closeSidebarSubmenu();
             window.location.hash = '#/logica/EX';
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
             exBtn.classList.add('active');

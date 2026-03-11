@@ -17,7 +17,7 @@
         <link rel="stylesheet"
             href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700&display=swap">
     </noscript>
-
+ 
     <!-- CSS Puro Optimizado -->
     <link rel="stylesheet" href="css/estilo.css">
 
@@ -68,9 +68,8 @@
         }
     </script>
 </head>
-
 <body>
-
+ 
     <!--
         IMPORTANTE: Toggle, sidebar y backdrop en el body, NO dentro de #main-app.
         Cualquier ancestro con transform/filter/will-change (como el de la animación de #main-app)
@@ -115,8 +114,6 @@
         </button>
     </div>
 
-
-
     <!-- PANTALLA 1: INTRODUCCIÓN ANIMADA -->
     <div id="intro-screen" class="screen active">
         <!-- Switch for Intro -->
@@ -128,457 +125,128 @@
             <h1 id="intro-text">@pepelluba</h1>
             <div id="intro-reveal" class="hidden">
                 <button id="logic-btn">Lógica Matemática</button>
+                <button id="soon-btn" disabled aria-disabled="true" title="Próximamente">Próximamente</button>
                 <p id="sub-text">Universidad de Sevilla Matemáticas</p>
             </div>
         </div>
     </div>
 
-    <!-- PANTALLA 2: APLICACIÓN PRINCIPAL -->
-    <div id="main-app" class="screen hidden">
+    <script>
+        (function initTheme() {
+            const theme = localStorage.getItem('pepeweb_theme') || 'light';
+            const isDark = (theme === 'dark');
+            const htmlEl = document.documentElement;
 
-        <!-- ÁREA CENTRAL: Contenido dinámico -->
-        <main id="content-area">
+            if (isDark) document.body.classList.add('dark-mode');
+            if (htmlEl.classList.contains('dark-mode-preload')) {
+                htmlEl.classList.remove('dark-mode-preload');
+            }
 
-            <!-- Vista de la Wiki / Guía — ACTIVA POR DEFECTO (evita vacío en direct-logica) -->
-            <section id="wiki-view" class="view active-view">
-                <header class="section-header">
-                    <h3>Deducción Natural en Isabelle</h3>
-                </header>
-                <div class="wiki-content"
-                    style="height: calc(100vh - 80px); overflow-y: auto; padding-right: 1rem; padding-bottom: 1rem;">
+            const toggles = Array.from(document.querySelectorAll('.theme-toggle'));
+            toggles.forEach(t => {
+                t.checked = isDark;
+                t.onchange = () => {
+                    const checked = t.checked;
+                    toggles.forEach(other => other.checked = checked);
+                    document.body.classList.toggle('dark-mode', checked);
+                    localStorage.setItem('pepeweb_theme', checked ? 'dark' : 'light');
+                };
+            });
+        })();
 
-                    <div class="wiki-grid-item">
-                        <h4 class="wiki-item-title">El Lenguaje de Isabelle</h4>
-                        <p class="wiki-item-desc">Cómo hablar con la máquina. No puedes dar saltos lógicos, tienes que
-                            justificar cada paso.</p>
+        (function bindLogicBtn() {
+            const btn = document.getElementById('logic-btn');
+            if (!btn) return;
+            btn.addEventListener('click', () => {
+                window.location.href = './logica/index.html';
+            });
+        })();
 
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">assume "p"</summary>
-                            <div class="wiki-subinner">"Supongamos que tengo 'p'". Metes 'p' en tu mochila
-                                temporalmente. Es una hipótesis que podrás usar más tarde como ingrediente.</div>
-                        </details>
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">have "q"</summary>
-                            <div class="wiki-subinner">"Hago una pausa para fabricar 'q'". Es una mini-meta. Te inventas
-                                un paso intermedio que necesitas para más adelante. Tienes que demostrarlo ahí mismo.
-                            </div>
-                        </details>
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">show "r"</summary>
-                            <div class="wiki-subinner">"Con esto demuestro mi meta actual". Es el golpe final. Lo que
-                                pongas en un <code>show</code> tiene que coincidir exactamente con lo que Isabelle te
-                                está pidiendo en ese momento.</div>
-                        </details>
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">using</summary>
-                            <div class="wiki-subinner">"Usando estos ingredientes…". Le pasas datos de tu mochila
-                                (hipótesis o resultados previos) a una regla para que pueda ejecutarse.</div>
-                        </details>
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">proof (rule X)</summary>
-                            <div class="wiki-subinner">"Voy a resolver esta meta abriendo la estructura con la regla X".
-                                Aplica la regla principal y genera las sub-metas correspondientes.</div>
-                        </details>
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">proof −</summary>
-                            <div class="wiki-subinner">"No apliques ninguna regla automática todavía. Voy a preparar mis
-                                ingredientes en la mesa primero". Útil cuando necesitas montar piezas antes de cerrar.
-                            </div>
-                        </details>
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">next</summary>
-                            <div class="wiki-subinner">El separador de universos paralelos. Cierra un caso y resetea la
-                                mochila para empezar el siguiente. Imprescindible en pruebas por casos o conjunciones
-                                divididas.</div>
-                        </details>
-                    </div>
+        (function playIntroSequence() {
+            const introText = document.getElementById('intro-text');
+            const introReveal = document.getElementById('intro-reveal');
+            if (!introText || !introReveal) return;
 
-                    <div class="wiki-grid-item">
-                        <h4 class="wiki-item-title">La Implicación →</h4>
-                        <p class="wiki-item-desc">La flecha es un billete de tren. Si estás en la ciudad A, te lleva a
-                            la ciudad B.</p>
+            introText.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 1000, easing: 'ease-out', fill: 'forwards' })
+                .finished
+                .then(() => new Promise(r => setTimeout(r, 300)))
+                .then(() => {
+                    introReveal.classList.remove('hidden');
+                    introReveal.animate([
+                        { opacity: 0, transform: 'translate3d(0, -20px, 0)' },
+                        { opacity: 1, transform: 'translate3d(0, 0, 0)' }
+                    ], { duration: 1000, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
+                });
+        })();
 
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">Fabricar una flecha — rule impI</summary>
-                            <div class="wiki-subinner">
-                                Para fabricar un billete de 'p' a 'q', asumo que estoy en 'p' y trato de demostrar que
-                                puedo llegar a 'q'.
-                                <span class="wiki-code-block">proof (rule impI)<br>&nbsp;&nbsp;assume
-                                    "p"<br>&nbsp;&nbsp;show "q" ...</span>
-                            </div>
-                        </details>
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">Usar una flecha — rule mp (Modus Ponens)</summary>
-                            <div class="wiki-subinner">
-                                Tienes <code>p → q</code> (el billete) y tienes <code>p</code> (estás en la ciudad).
-                                Como tengo el billete y estoy en el origen, llego al destino.
-                                <span class="wiki-code-block">have "q" using `p → q` `p` by (rule mp)</span>
-                            </div>
-                        </details>
-                    </div>
+        (function initCustomCursor() {
+            if (!window.matchMedia("(pointer: fine)").matches) return;
+            const cursor = document.createElement('div');
+            cursor.id = 'custom-cursor';
+            document.body.appendChild(cursor);
 
-                    <div class="wiki-grid-item">
-                        <h4 class="wiki-item-title">La Conjunción &amp;</h4>
-                        <p class="wiki-item-desc">Una bolsa hermética que contiene dos cosas juntas.</p>
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = `${e.clientX}px`;
+                cursor.style.top = `${e.clientY}px`;
+            });
 
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">Extraer de la bolsa — conjunct1 / conjunct2</summary>
-                            <div class="wiki-subinner">
-                                Tienes una bolsa <code>p &amp; q</code>. Rompes la bolsa y te quedas con lo de la
-                                izquierda (<code>conjunct1</code>) o con lo de la derecha (<code>conjunct2</code>).
-                                <span class="wiki-code-block">have "p" using `p &amp; q` by (rule conjunct1)</span>
-                            </div>
-                        </details>
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">Fabricar la bolsa — rule conjI</summary>
-                            <div class="wiki-subinner">
-                                Tienes 'p' suelta y tienes 'q' suelta. Les pones pegamento y las metes en una bolsa
-                                juntas. Si haces <code>proof (rule conjI)</code> sin ingredientes, Isabelle te divide en
-                                dos sub-tareas.
-                                <span class="wiki-code-block">show "p &amp; q" using `p` `q` by (rule conjI)</span>
-                            </div>
-                        </details>
-                    </div>
+            document.body.addEventListener('mouseover', (e) => {
+                if (e.target.closest('button, a, input, .wiki-subsummary, .exercise-card, .light-switch, .icon-btn')) {
+                    cursor.classList.add('hover');
+                }
+            });
 
-                    <div class="wiki-grid-item">
-                        <h4 class="wiki-item-title">La Disyunción |</h4>
-                        <p class="wiki-item-desc">Caminos alternativos. No sabes cuál es el real.</p>
+            document.body.addEventListener('mouseout', (e) => {
+                if (e.target.closest('button, a, input, .wiki-subsummary, .exercise-card, .light-switch, .icon-btn')) {
+                    cursor.classList.remove('hover');
+                }
+            });
+        })();
 
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">Fabricar un "O" — disjI1 / disjI2</summary>
-                            <div class="wiki-subinner">
-                                Ya sabes que 'p' es verdad de forma segura. Como tienes 'p', te puedes inventar
-                                cualquier alternativa a su lado.
-                                <span class="wiki-code-block">show "p | q" using `p` by (rule disjI1)<br>show "p | q"
-                                    using `q` by (rule disjI2)</span>
-                            </div>
-                        </details>
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">Prueba por casos — rule disjE</summary>
-                            <div class="wiki-subinner">
-                                Tienes <code>p | q</code> pero tu meta es <code>r</code>. Como no sabes si es 'p' o 'q',
-                                exploras ambos universos. Demuestras 'r' asumiendo 'p', y luego demuestras 'r' asumiendo
-                                'q'.
-                                <span class="wiki-code-block">show "r" using `p | q`<br>proof (rule
-                                    disjE)<br>&nbsp;&nbsp;assume "p"<br>&nbsp;&nbsp;show "r"
-                                    ...<br>next<br>&nbsp;&nbsp;assume "q"<br>&nbsp;&nbsp;show "r" ...<br>qed</span>
-                            </div>
-                        </details>
-                    </div>
+        (function initBackgroundParallax() {
+            if (!window.matchMedia("(pointer: fine)").matches) return;
+            let raf = 0;
+            let targetX = 0;
+            let targetY = 0;
+            let currentX = 0;
+            let currentY = 0;
+            const strength = 12;
 
-                    <div class="wiki-grid-item">
-                        <h4 class="wiki-item-title">La Negación ~</h4>
-                        <p class="wiki-item-desc">Si algo choca, el sistema explota. La contradicción es tu arma.</p>
+            function commit() {
+                currentX += (targetX - currentX) * 0.08;
+                currentY += (targetY - currentY) * 0.08;
 
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">Fabricar un "NO" — rule notI</summary>
-                            <div class="wiki-subinner">
-                                Para demostrar que 'p' es mentira, asumo que es verdad. Al asumir 'p', si llego a una
-                                contradicción absurda (<code>False</code>), entonces era mentira.
-                                <span class="wiki-code-block">proof (rule notI)<br>&nbsp;&nbsp;assume
-                                    "p"<br>&nbsp;&nbsp;show False ...</span>
-                            </div>
-                        </details>
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">Crear el cortocircuito — rule notE</summary>
-                            <div class="wiki-subinner">
-                                Tienes algo afirmado (<code>p</code>) y lo mismo negado (<code>~p</code>). Tengo un
-                                choque frontal. Se lo doy a 'notE', el sistema se rompe, y como premio me regala la meta
-                                que yo quiera.
-                                <span class="wiki-code-block">show "Z" using `~p` `p` by (rule notE)</span>
-                            </div>
-                        </details>
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">Explosión — rule FalseE</summary>
-                            <div class="wiki-subinner">
-                                Ya tienes la palabra <code>False</code> en tu mochila. Como ya has demostrado el
-                                absurdo, puedes concluir cualquier cosa.
-                                <span class="wiki-code-block">show "Z" using `False` by (rule FalseE)</span>
-                            </div>
-                        </details>
-                        <details class="wiki-subcard">
-                            <summary class="wiki-subsummary">Reducción al absurdo — rule ccontr</summary>
-                            <div class="wiki-subinner">
-                                Estás atascado en tu meta <code>p</code>. Asumes que tu meta entera es mentira
-                                (<code>~p</code>). Si usando eso logras crear un cortocircuito (<code>False</code>),
-                                entonces tu meta original era verdad.
-                                <span class="wiki-code-block">proof (rule ccontr)<br>&nbsp;&nbsp;assume
-                                    "~p"<br>&nbsp;&nbsp;show False ...</span>
-                            </div>
-                        </details>
-                    </div>
+                document.documentElement.style.setProperty('--bg-x', `${currentX}px`);
+                document.documentElement.style.setProperty('--bg-y', `${currentY}px`);
 
-                </div>
-            </section>
+                if (Math.abs(targetX - currentX) > 0.01 || Math.abs(targetY - currentY) > 0.01) {
+                    raf = requestAnimationFrame(commit);
+                } else {
+                    raf = 0;
+                }
+            }
 
-            <!-- Vista de Selección de Ejercicios -->
-            <section id="exercises-view" class="view hidden-view">
-                <header class="section-header">
-                    <h3 id="current-theme-title">Selecciona un Tema</h3>
-                </header>
-                <div id="exercises-grid" class="grid">
-                    <!-- Ejercicios inyectados aquí por JS -->
-                </div>
-            </section>
+            document.addEventListener('mousemove', (e) => {
+                targetX = (e.clientX / window.innerWidth - 0.5) * strength * 2;
+                targetY = (e.clientY / window.innerHeight - 0.5) * strength * 2;
+                if (!raf) raf = requestAnimationFrame(commit);
+            }, { passive: true });
 
-            <!-- Vista del Panel de Administración (API GitHub) -->
-            <section id="admin-view" class="view hidden-view">
-                <header class="section-header"
-                    style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="font-size: 1.8rem; font-family: 'Outfit', sans-serif; color: var(--c-accent-dark);">
-                        Administración Secreta</h3>
-                    <button id="admin-close-btn" class="icon-btn" aria-label="Cerrar Panel">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                    </button>
-                </header>
+            document.addEventListener('mouseleave', () => {
+                targetX = 0;
+                targetY = 0;
+                if (!raf) raf = requestAnimationFrame(commit);
+            });
+        })();
 
-                <div class="admin-container">
-                    <!-- Login de GitHub -->
-                    <div id="admin-login-box" class="admin-login-box">
-                        <p style="margin-bottom: 1.5rem; color: var(--c-text-muted); font-size: 0.95rem;">
-                            Conéctate a GitHub para actualizar los ejercicios directamente en el servidor.
-                        </p>
-
-                        <div class="admin-input-group">
-                            <label>Usuario de GitHub</label>
-                            <input type="text" id="gh-user" class="admin-input" placeholder="Ej: pepelluba"
-                                autocomplete="off">
-                        </div>
-
-                        <div class="admin-input-group">
-                            <label>Repositorio</label>
-                            <input type="text" id="gh-repo" class="admin-input" placeholder="Ej: pepeweb"
-                                autocomplete="off">
-                        </div>
-
-                        <div class="admin-input-group">
-                            <label>Token Personal de Acceso (PAT)</label>
-                            <input type="password" id="gh-token" class="admin-input"
-                                placeholder="ghp_XXXXXXXXXXXXXXXXXXXXXXXX" autocomplete="off">
-                        </div>
-
-                        <div
-                            style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; margin-bottom: 1.5rem;">
-                            <input type="checkbox" id="gh-remember"
-                                style="accent-color: var(--c-text-main); width: 16px; height: 16px;">
-                            <label for="gh-remember"
-                                style="font-size: 0.85rem; color: var(--c-text-muted); cursor: pointer; text-transform: none; font-weight: normal;">Recordar
-                                datos en este navegador</label>
-                        </div>
-
-                        <button id="admin-login-btn" class="control-btn primary admin-btn"
-                            style="width: 100%; border-radius: 8px;">Conectar a GitHub</button>
-                        <p id="admin-auth-msg" class="admin-msg"></p>
-                    </div>
-
-                    <!-- Dashboard / Editor Visual CRUD -->
-                    <div id="admin-dashboard" class="admin-dashboard hidden">
-                        <p style="margin-bottom: 1rem; color: var(--c-text-muted); font-size: 0.9rem;">
-                            Conectado como <strong id="admin-connected-user"
-                                style="color: var(--c-text-main);">...</strong>
-                        </p>
-
-                        <!-- Sub-Pantalla 1: Selector de Tema -->
-                        <div id="adm-themes" class="adm-screen">
-                            <h4 class="adm-subtitle">Selecciona un Tema</h4>
-                            <div id="adm-theme-list" class="adm-grid"></div>
-                        </div>
-
-                        <!-- Sub-Pantalla 2: Lista de Ejercicios -->
-                        <div id="adm-exercises" class="adm-screen hidden">
-                            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
-                                <button id="adm-back-themes" class="icon-btn" aria-label="Volver">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <path d="M19 12H5M12 19l-7-7 7-7" />
-                                    </svg>
-                                </button>
-                                <h4 class="adm-subtitle" id="adm-ex-title" style="margin:0;">Ejercicios</h4>
-                            </div>
-                            <div id="adm-ex-list" class="adm-list"></div>
-                            <div style="display:flex; gap:0.5rem; margin-top:1.5rem;">
-                                <button id="adm-new-ex" class="control-btn primary admin-btn"
-                                    style="flex:1; border-radius:12px;">
-                                    ➕ Crear Nuevo
-                                </button>
-                                <button id="adm-import-ai" class="control-btn admin-btn"
-                                    style="flex:1; border-radius:12px; background:var(--c-bg-alt); color:var(--c-text-main); border-color:rgba(0,0,0,0.1);">
-                                    🤖 Importar con IA
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Sub-Pantalla 3: Editor de Ejercicio -->
-                        <div id="adm-editor" class="adm-screen hidden"
-                            style="overflow-y:auto;max-height:calc(100vh - 280px);padding-right:0.5rem;">
-                            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
-                                <button id="adm-back-exs" class="icon-btn" aria-label="Volver">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <path d="M19 12H5M12 19l-7-7 7-7" />
-                                    </svg>
-                                </button>
-                                <h4 class="adm-subtitle" id="adm-editor-title" style="margin:0;">Editor</h4>
-                            </div>
-
-                            <div class="admin-input-group">
-                                <label>Título del Ejercicio</label>
-                                <input type="text" id="adm-ex-titleinput" class="admin-input"
-                                    placeholder="Ej: A ⟶ E, A ⊢ E">
-                            </div>
-                            <div class="admin-input-group">
-                                <label>Nombre Interno (ID único)</label>
-                                <input type="text" id="adm-ex-name" class="admin-input" placeholder="Ej: 1_1_auto">
-                            </div>
-                            <div class="admin-input-group">
-                                <label>Método por Defecto</label>
-                                <input type="text" id="adm-ex-method" class="admin-input"
-                                    placeholder="Ej: Solución Automática (auto)">
-                            </div>
-
-                            <h4 class="adm-subtitle" style="margin-top:2rem;">Pasos de la Prueba</h4>
-                            <div id="adm-steps-container"></div>
-                            <button id="adm-add-step" class="control-btn admin-btn"
-                                style="width:100%;border-radius:12px;margin-top:1rem;">
-                                ➕ Añadir Paso
-                            </button>
-
-                            <button id="adm-save-ex" class="control-btn primary admin-btn"
-                                style="width:100%;border-radius:12px;margin-top:2rem;font-size:1rem;padding:1rem;">
-                                💾 Guardar y Publicar en GitHub
-                            </button>
-                            <p id="adm-save-msg" class="admin-msg"></p>
-                        </div>
-
-                        <!-- Sub-Pantalla 4: Importar con IA -->
-                        <div id="adm-ai-import" class="adm-screen hidden">
-                            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
-                                <button id="adm-back-exs-from-ai" class="icon-btn" aria-label="Volver">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <path d="M19 12H5M12 19l-7-7 7-7" />
-                                    </svg>
-                                </button>
-                                <h4 class="adm-subtitle" style="margin:0;">Importar con IA (Gemini)</h4>
-                            </div>
-
-                            <div
-                                style="background:var(--c-bg-alt); padding:1rem; border-radius:8px; margin-bottom:1.5rem;">
-                                <p style="font-size:0.9rem; margin-bottom:1rem; color:var(--c-text-main);">
-                                    1. Copia el siguiente prompt y envíaselo a Gemini o ChatGPT.
-                                </p>
-                                <button id="adm-ai-copy-prompt" class="control-btn admin-btn"
-                                    style="width:100%; border-radius:8px; background:#fff;">
-                                    📋 Copiar Instrucciones
-                                </button>
-                                <p id="adm-ai-copy-msg"
-                                    style="font-size:0.8rem; color:var(--c-accent-dark); text-align:center; margin-top:0.5rem; min-height:1rem;">
-                                </p>
-                            </div>
-
-                            <div class="admin-input-group">
-                                <label>2. Pega aquí el JSON que te devuelva la IA</label>
-                                <textarea id="adm-ai-json-input" class="admin-textarea code-font" style="height:200px;"
-                                    placeholder='{"title": "...", "name": "...", "steps": [...]}'></textarea>
-                            </div>
-
-                            <button id="adm-ai-process" class="control-btn primary admin-btn"
-                                style="width:100%;border-radius:12px;margin-top:1rem;">
-                                ⬇️ Leer JSON e ir al Editor
-                            </button>
-                            <p id="adm-ai-error-msg" class="admin-msg error"></p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Vista del Editor de Isabelle -->
-            <section id="isabelle-view" class="view hidden-view">
-                <header class="isabelle-header">
-                    <div>
-                        <h3 id="exercise-title">Prueba</h3>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div id="progress-bar"></div>
-                    </div>
-                </header>
-
-                <div class="isabelle-workspace">
-                    <!-- Panel Izquierdo: Código -->
-                    <div class="panel code-panel" id="code-scroll">
-                        <div id="code-container" class="code-font"></div>
-                    </div>
-
-                    <!-- Panel Derecho: Explicaciones e Hipótesis -->
-                    <div class="panel explanation-panel" id="explanation-scroll">
-                        <div class="explanation-section">
-                            <h4>EXPLICACIÓN</h4>
-                            <div id="explanation-text" class="text-content"></div>
-                        </div>
-
-                        <div class="hypothesis-section">
-                            <h4>HIPÓTESIS ACTIVAS</h4>
-                            <div id="active-hypotheses" class="hypotheses-list"></div>
-                        </div>
-
-                        <!-- Controles Minimalistas Flotantes -->
-                        <div class="controls">
-                            <button id="btn-prev" class="control-btn" disabled>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path d="M15 18l-6-6 6-6" />
-                                </svg>
-                            </button>
-                            <button id="btn-next" class="control-btn primary">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path d="M9 18l6-6-6-6" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-        </main>
-    </div>
-
-    <!-- SVG FILTER FOR LIQUID GLASS -->
-    <svg style="display: none">
-        <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
-            <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence" />
-
-            <feComponentTransfer in="turbulence" result="mapped">
-                <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
-                <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
-                <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
-            </feComponentTransfer>
-
-            <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
-
-            <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100"
-                lighting-color="white" result="specLight">
-                <fePointLight x="-200" y="-200" z="300" />
-            </feSpecularLighting>
-
-            <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-
-            <feDisplacementMap in="SourceGraphic" in2="softMap" scale="150" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-    </svg>
-
-    <!-- Cero dependencias externas. Solo un archivo JS puro y duro. -->
-    <script src="js/data/main_config.js"></script>
-    <script src="js/data/TEMA1.js"></script>
-    <script src="js/data/TEMA2.js"></script>
-    <script src="js/data/TEMA3.js"></script>
-    <script src="js/data/TEMA4.js"></script>
-    <script src="js/data/TEMA5.js"></script>
-    <script src="js/data/TEMA6.js"></script>
-    <script src="js/app.js"></script>
+        (function styleGlobalBack() {
+            const globalBack = document.getElementById('global-back');
+            if (!globalBack) return;
+            globalBack.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                <span style="font-family:'Outfit';font-weight:300;letter-spacing:1px;font-size:0.9rem;">VOLVER</span>
+            `;
+        })();
+    </script>
 </body>
-
 </html>

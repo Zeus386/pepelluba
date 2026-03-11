@@ -1,6 +1,6 @@
 # Instrucciones de Administración (Backend) - PepeWeb
 
-Para añadir nuevos temas o ejercicios a tu aplicación, no tienes que modificar código complejo. Solo necesitas alimentar el archivo `js/data/TEMA1.js` (o crear nuevos) usando un modelo de Inteligencia Artificial (ChatGPT, Claude, Gemini, etc).
+Para añadir nuevos temas o ejercicios a tu aplicación, no tienes que modificar código complejo. Solo necesitas alimentar archivos de boletín/parciales como `js/data/BOLETIN1.js`, `js/data/PRIMER_PARCIAL.js`, `js/data/SEGUNDO_PARCIAL.js` o `js/data/CONVOCATORIA.js` usando un modelo de Inteligencia Artificial (ChatGPT, Claude, Gemini, etc).
 
 ## 1. El Prompt (Copia y pega esto en la IA)
 
@@ -46,7 +46,7 @@ Copia el siguiente texto exacto y envíaselo a la IA, adjuntando la demostració
 ## 2. Cómo actualizar la web
 
 1. Copia la respuesta que te dé la IA.
-2. Abre el archivo `C:\Users\pepel\Desktop\pepeweb\js\data\TEMA1.js` (u otro tema) con el Bloc de Notas o VSCode.
+2. Abre el archivo correspondiente (`js/data/BOLETINX.js`, `js/data/PRIMER_PARCIAL.js`, `js/data/SEGUNDO_PARCIAL.js` o `js/data/CONVOCATORIA.js`) con el Bloc de Notas o VSCode.
 3. Pega el bloque de código entre los demás ejercicios, asegurándote de separarlos por comas.
 4. Nombra los ejercicios como `"exe01"`, `"exe02"`, etc.
 5. ¡Guarda el archivo y recarga tu página web para ver el ejercicio funcionando al instante!

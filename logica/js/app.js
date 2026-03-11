@@ -298,6 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
 
     async function playIntroSequence() {
+        if (!DOM.screens.intro || !DOM.intro.text || !DOM.intro.reveal) return;
         // Fase 1: Aparece @pepelluba
         await DOM.intro.text.animate([
             { opacity: 0 },
@@ -318,11 +319,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function transitionToApp(withAnimation = true) {
         // Cancel all ongoing animations
-        [DOM.screens.intro, DOM.screens.mainApp].forEach(el => {
+        [DOM.screens.intro, DOM.screens.mainApp].filter(Boolean).forEach(el => {
             el.getAnimations().forEach(anim => anim.cancel());
         });
 
-        if (withAnimation) {
+        if (withAnimation && DOM.screens.intro) {
             // Animación de salida de la intro (agrandar y difuminar)
             const exitAnim = DOM.screens.intro.animate([
                 { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' },
@@ -339,8 +340,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // BUGFIX: limpiar clase direct-logica para que el CSS normal tome el control
         document.documentElement.classList.remove('direct-logica');
 
-        DOM.screens.intro.classList.replace('active', 'hidden');
-        DOM.screens.mainApp.classList.replace('hidden', 'active');
+        if (DOM.screens.intro) DOM.screens.intro.classList.replace('active', 'hidden');
+        if (DOM.screens.mainApp) DOM.screens.mainApp.classList.replace('hidden', 'active');
         sidebar.classList.add('active');
         DOM.globalHeader.classList.remove('hidden-element');
         syncMobileSidebarUI();
@@ -363,8 +364,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function transitionToIntro(withAnimation = true) {
+        if (!DOM.screens.intro || !DOM.screens.mainApp) return;
         // Cancel all ongoing animations
-        [DOM.screens.intro, DOM.screens.mainApp].forEach(el => {
+        [DOM.screens.intro, DOM.screens.mainApp].filter(Boolean).forEach(el => {
             el.getAnimations().forEach(anim => anim.cancel());
         });
 
@@ -394,20 +396,24 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.screens.intro.style.opacity = '1';
         DOM.screens.intro.style.transform = 'scale(1)';
 
-        if (withAnimation) {
+        if (withAnimation && DOM.intro.text && DOM.intro.reveal) {
             DOM.intro.text.style.opacity = '0';
             DOM.intro.reveal.classList.add('hidden');
             playIntroSequence();
         } else {
-            DOM.intro.reveal.classList.remove('hidden');
-            DOM.intro.reveal.style.opacity = '1';
-            DOM.intro.text.style.opacity = '1';
+            if (DOM.intro.reveal) {
+                DOM.intro.reveal.classList.remove('hidden');
+                DOM.intro.reveal.style.opacity = '1';
+            }
+            if (DOM.intro.text) DOM.intro.text.style.opacity = '1';
         }
     }
 
-    DOM.intro.btn.addEventListener('click', () => {
-        window.location.hash = '#/logica';
-    });
+    if (DOM.intro.btn) {
+        DOM.intro.btn.addEventListener('click', () => {
+            window.location.hash = '#/logica';
+        });
+    }
 
     function showIntro(withAnimation = true) {
         // Wrapper para llamar a la transición correcta
@@ -451,19 +457,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (hash.startsWith('#/logica')) {
             const parts = hash.split('/');
-            const wasInIntro = DOM.screens.intro.classList.contains('active');
+            const wasInIntro = !!(DOM.screens.intro && DOM.screens.intro.classList.contains('active'));
             const isDirect = document.documentElement.classList.contains('direct-logica');
 
             // 1. Asegurar estado de la App
-            if (wasInIntro) {
+            if (!DOM.screens.intro) {
+                document.documentElement.classList.remove('direct-logica');
+                if (DOM.screens.mainApp) {
+                    DOM.screens.mainApp.classList.remove('hidden');
+                    DOM.screens.mainApp.classList.add('active');
+                    DOM.screens.mainApp.style.opacity = '1';
+                    DOM.screens.mainApp.style.transform = 'translate3d(0, 0, 0) scale(1)';
+                }
+                if (sidebar) sidebar.classList.add('active');
+                syncMobileSidebarUI();
+                if (DOM.globalHeader) DOM.globalHeader.classList.remove('hidden-element');
+                if (!state.sidebarInitialized) {
+                    renderSidebar();
+                    state.sidebarInitialized = true;
+                }
+            } else if (wasInIntro) {
                 if (!state.sidebarInitialized) {
                     renderSidebar();
                     state.sidebarInitialized = true;
                 }
                 await transitionToApp(!isDirect);
-            } else if (!DOM.screens.mainApp.classList.contains('active')) {
+            } else if (DOM.screens.mainApp && !DOM.screens.mainApp.classList.contains('active')) {
                 document.documentElement.classList.remove('direct-logica');
-                DOM.screens.intro.classList.replace('active', 'hidden');
+                if (DOM.screens.intro) DOM.screens.intro.classList.replace('active', 'hidden');
                 DOM.screens.mainApp.classList.replace('hidden', 'active');
                 DOM.screens.mainApp.style.opacity = '1';
                 DOM.screens.mainApp.style.transform = 'translate3d(0, 0, 0) scale(1)';
@@ -508,11 +529,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else {
             // Mostrar Intro
-            const wasInApp = DOM.screens.mainApp.classList.contains('active');
-            if (wasInApp) {
-                transitionToIntro(true);
+            if (DOM.screens.intro) {
+                const wasInApp = DOM.screens.mainApp.classList.contains('active');
+                if (wasInApp) transitionToIntro(true);
+                else showIntro(true);
             } else {
-                showIntro(true);
+                window.location.href = '../index.html';
             }
         }
     }
@@ -548,13 +570,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (['P1', 'P2', 'C'].includes(parts[2])) {
                 window.location.hash = '#/logica/EX';
             } else {
-                window.location.hash = ''; // De Tema o EX a Intro
+                if (DOM.screens.intro) window.location.hash = '';
+                else window.location.href = '../index.html';
             }
         } else if (parts.length === 2 && parts[1] === 'logica') {
             // De Wiki a Intro
-            window.location.hash = '';
+            if (DOM.screens.intro) window.location.hash = '';
+            else window.location.href = '../index.html';
         } else {
-            window.location.hash = '';
+            if (DOM.screens.intro) window.location.hash = '';
+            else window.location.href = '../index.html';
         }
     });
 

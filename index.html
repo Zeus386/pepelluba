@@ -592,35 +592,27 @@
 
     <!-- MODAL DE SELECCIÓN DE MODO -->
     <div id="mode-selection-modal" class="modal-overlay hidden">
-        <div class="modal-content liquidGlass-wrapper">
-            <div class="liquidGlass-effect"></div>
-            <div class="liquidGlass-tint"></div>
-            <div class="liquidGlass-shine"></div>
-            <div class="liquidGlass-text modal-inner">
-                <h3>Selecciona el Modo</h3>
-                <p>¿Cómo quieres resolver este ejercicio?</p>
-                <div class="modal-actions">
-                    <button id="btn-mode-decl" class="mode-btn">
-                        <div class="mode-icon-box">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                        </div>
-                        <span class="mode-label">Modo Declarativa</span>
-                        <span class="mode-desc">Estilo Isar (legible)</span>
-                    </button>
-                    <button id="btn-mode-appl" class="mode-btn">
-                        <div class="mode-icon-box">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                            </svg>
-                        </div>
-                        <span class="mode-label">Modo Aplicativa</span>
-                        <span class="mode-desc">Scripts de tácticas</span>
-                    </button>
-                </div>
-                <button id="btn-mode-cancel" class="text-btn">Cancelar</button>
+        <div class="modal-content">
+            <button id="btn-mode-cancel" class="modal-close" aria-label="Cerrar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+            <span class="modal-kicker">MODO</span>
+            <div class="modal-actions">
+                <button id="btn-mode-decl" class="mode-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    <span class="mode-label">Declarativa</span>
+                </button>
+                <button id="btn-mode-appl" class="mode-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    <span class="mode-label">Aplicativa</span>
+                </button>
             </div>
         </div>
     </div>

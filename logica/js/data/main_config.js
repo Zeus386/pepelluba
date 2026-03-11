@@ -6,7 +6,19 @@ const EXERCISES_DATA = {
                 title: "Sintaxis y semántica de la lógica proposicional",
                 exercises: {
                     "exe1": { title: "A ⟶ E, A ⊢ E", name: "1_1_auto", defaultMethod: "Solución Automática (auto)" },
-                    "exe2": { title: "T ∧ P ⟶ S, T, P ⊢ S", name: "1_2_auto", defaultMethod: "Solución Automática (auto)" }
+                    "exe2": { title: "Contrapositiva: (T ∧ P) ⟶ ¬L, T ⊢ L ⟶ ¬P", name: "1_2_auto", defaultMethod: "Solución Automática (auto)" },
+                    "exe3": { title: "Modus Tollens: D ⟶ C, ¬C ⊢ ¬D", name: "1_3_auto", defaultMethod: "Solución Automática (auto)" },
+                    "exe4": { title: "A ⟶ (M ⟷ ¬B), A ∨ B ⊢ ¬B ⟶ M", name: "1_4_auto", defaultMethod: "Solución Automática (auto)" },
+                    "exe5": { title: "Simplificación: ¬M ∧ ¬A ⊢ ¬M", name: "1_5_auto", defaultMethod: "Solución Automática (auto)" },
+                    "exe6": { title: "Dilema Constructivo", name: "1_6_auto", defaultMethod: "Solución Automática (auto)" },
+                    "exe7": { title: "Doble Negación", name: "1_7_auto", defaultMethod: "Solución Automática (auto)" },
+                    "exe8": { title: "Silogismo Hipotético", name: "1_8_auto", defaultMethod: "Solución Automática (auto)" },
+                    "exe9": { title: "Dilema Destructivo", name: "1_9_auto", defaultMethod: "Solución Automática (auto)" },
+                    "exe10": { title: "Problema de Zeus", name: "1_10_auto", defaultMethod: "Solución Automática (auto)" },
+                    "exe11": { title: "Pedro, Quintín y Raúl", name: "1_11_auto", defaultMethod: "Solución Automática (auto)" },
+                    "exe12": { title: "Sistema de Control", name: "1_12_auto", defaultMethod: "Solución Automática (auto)" },
+                    "exe13": { title: "Trabajo y Vida", name: "1_13_auto", defaultMethod: "Solución Automática (auto)" },
+                    "exe_extra": { title: "Extra: Veraces y Mentirosos", name: "1_extra_auto", defaultMethod: "Solución Automática (auto)" }
                 }
             }
         }

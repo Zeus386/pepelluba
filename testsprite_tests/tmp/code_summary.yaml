@@ -1,0 +1,56 @@
+version: "2"
+type: frontend
+tech_stack:
+  - JavaScript
+  - HTML5
+  - CSS3
+routes:
+  - path: /
+    file: index.html
+    auth_required: false
+    description: Landing page with module selection
+  - path: /logica/
+    file: logica/index.html
+    auth_required: false
+    description: Logic module main interface
+features:
+  - name: Logic Module Navigation
+    description: Navigation within the logic module using sidebar and tabs
+    files:
+      - js/modules/ui/sidebar.js
+      - js/modules/core/router.js
+    entry_route: /logica/
+    user_interactions:
+      - Click sidebar items (Boletines)
+      - Switch between tabs (Wiki, Exercises)
+      - Toggle sidebar visibility
+  - name: Exercise Workspace
+    description: Interactive workspace for solving logic proofs
+    files:
+      - js/modules/ui/views.js
+      - js/modules/core/state.js
+    entry_route: /logica/
+    user_interactions:
+      - Open exercise from list
+      - Click Next/Previous step
+      - View hypotheses and goals
+      - Select resolution mode (Declarative/Isar)
+  - name: Wiki & Documentation
+    description: Educational content and syntax examples
+    files:
+      - js/modules/ui/views.js
+    entry_route: /logica/
+    user_interactions:
+      - Browse wiki sections
+      - Expand/collapse example cards
+  - name: Theme Toggle
+    description: Switch between light and dark modes
+    files:
+      - js/modules/ui/theme.js
+    entry_route: /
+    user_interactions:
+      - Click theme toggle button
+known_limitations:
+  - issue: Admin Panel is UI-only
+    location: js/modules/admin/admin.js
+    impact: Changes are not persisted to backend

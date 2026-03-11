@@ -39,7 +39,7 @@
             history.replaceState(null, '', cleanPath + window.location.search + window.location.hash);
         }
 
-        if (!window.location.hash) {
+        if (window.location.protocol === 'file:' && !window.location.hash) {
             window.location.hash = '#/logica';
         }
 
@@ -511,15 +511,17 @@
                     </div>
 
                     <!-- Panel Derecho: Explicaciones e Hipótesis -->
-                    <div class="panel explanation-panel" id="explanation-scroll">
-                        <div class="explanation-section">
-                            <h4>EXPLICACIÓN</h4>
-                            <div id="explanation-text" class="text-content"></div>
-                        </div>
+                    <div class="panel explanation-panel">
+                        <div id="explanation-scroll" class="explanation-scroll-container">
+                            <div class="explanation-section">
+                                <h4>EXPLICACIÓN</h4>
+                                <div id="explanation-text" class="text-content"></div>
+                            </div>
 
-                        <div class="hypothesis-section">
-                            <h4>HIPÓTESIS ACTIVAS</h4>
-                            <div id="active-hypotheses" class="hypotheses-list"></div>
+                            <div class="hypothesis-section">
+                                <h4>HIPÓTESIS ACTIVAS</h4>
+                                <div id="active-hypotheses" class="hypotheses-list"></div>
+                            </div>
                         </div>
 
                         <!-- Controles Minimalistas Flotantes -->
@@ -569,22 +571,21 @@
     </svg>
 
     <!-- Cero dependencias externas. Solo JS modular de datos + app -->
-    <script src="js/data/BOLETIN1.js"></script>
-    <script src="js/data/BOLETIN2.js"></script>
-    <script src="js/data/BOLETIN3.js"></script>
-    <script src="js/data/BOLETIN4.js"></script>
-    <script src="js/data/BOLETIN5.js"></script>
-    <script src="js/data/BOLETIN6.js"></script>
-    <script src="js/data/BOLETIN7.js"></script>
-    <script src="js/data/BOLETIN8.js"></script>
-    <script src="js/data/BOLETIN9.js"></script>
-    <script src="js/data/BOLETIN10.js"></script>
-    <script src="js/data/BOLETIN11.js"></script>
-    <script src="js/data/PRIMER_PARCIAL.js"></script>
-    <script src="js/data/SEGUNDO_PARCIAL.js"></script>
-    <script src="js/data/CONVOCATORIA.js"></script>
-    <script src="js/data/main_config.js"></script>
-    <script src="js/app.js"></script>
+    <script src="../js/data/BOLETIN1.js"></script>
+    <script src="../js/data/BOLETIN2.js"></script>
+    <script src="../js/data/BOLETIN3.js"></script>
+    <script src="../js/data/BOLETIN4.js"></script>
+    <script src="../js/data/BOLETIN5.js"></script>
+    <script src="../js/data/BOLETIN6.js"></script>
+    <script src="../js/data/BOLETIN7.js"></script>
+    <script src="../js/data/BOLETIN8.js"></script>
+    <script src="../js/data/BOLETIN9.js"></script>
+    <script src="../js/data/BOLETIN10.js"></script>
+    <script src="../js/data/BOLETIN11.js"></script>
+    <script src="../js/data/PRIMER_PARCIAL.js"></script>
+    <script src="../js/data/SEGUNDO_PARCIAL.js"></script>
+    <script src="../js/data/CONVOCATORIA.js"></script>
+    <script src="../js/data/main_config.js"></script>
+    <script type="module" src="../js/main.js"></script>
 </body>
-
 </html>

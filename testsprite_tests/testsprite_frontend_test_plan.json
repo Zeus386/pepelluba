@@ -1,0 +1,1145 @@
+[
+  {
+    "id": "TC001",
+    "title": "Navigate from landing page to Logic module",
+    "description": "Verifies that clicking the Logic button on the landing page loads the Logic module at /logica/.",
+    "category": "Navigation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Logic\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Logic\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/logica/\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Exercises\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"module navigation\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Logic module page shows core content after navigation",
+    "description": "Verifies the Logic module displays an exercises list and basic navigation elements after entering from the landing page.",
+    "category": "Navigation",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Logic\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/logica/\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"exercises list\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"module navigation\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Theory\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Logic module navigation does not show failure banner on successful load",
+    "description": "Verifies that a normal navigation to the Logic module does not display the module load failure banner.",
+    "category": "Navigation",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Logic\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/logica/\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Failed to load module\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"exercises list\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Loading indicator appears during Logic module transition (if applicable)",
+    "description": "Verifies that a loading indicator can be shown during the transition from landing page to the Logic module.",
+    "category": "Navigation",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Logic\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"loading indicator\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/logica/\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"exercises list\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Select Boletín 1 from sidebar and open an exercise in the workspace",
+    "description": "Verifies that selecting 'Boletín 1' loads an exercise list and an exercise can be opened in the workspace.",
+    "category": "Logic Module Exercise Selection (Sidebar)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Boletín 1\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Boletín 1\" in the sidebar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise list\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first exercise title in the exercise list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Workspace\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Boletín 1\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Boletín 1 selection shows a loading spinner before exercises appear",
+    "description": "Verifies that a loading spinner appears after selecting 'Boletín 1' and then the exercise list is displayed.",
+    "category": "Logic Module Exercise Selection (Sidebar)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Boletín 1\" in the sidebar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Loading\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise list\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Loading\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Exercise list remains visible and usable after opening an exercise",
+    "description": "Verifies that after opening an exercise, the exercise list remains accessible for selecting a different exercise.",
+    "category": "Logic Module Exercise Selection (Sidebar)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Boletín 1\" in the sidebar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise list\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first exercise title in the exercise list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Workspace\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise list\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the second exercise title in the exercise list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Workspace\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Selecting Boletín 1 and handling 'Exercise not found' error state",
+    "description": "Verifies that an explicit error message is shown when exercises cannot be found after selecting 'Boletín 1'.",
+    "category": "Logic Module Exercise Selection (Sidebar)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Boletín 1\" in the sidebar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Loading\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Exercise not found\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Selecting Boletín 1 and handling 'Failed to load exercises' error state",
+    "description": "Verifies that a failure message is shown when loading exercises fails after selecting 'Boletín 1'.",
+    "category": "Logic Module Exercise Selection (Sidebar)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Boletín 1\" in the sidebar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Loading\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Failed to load exercises\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Sidebar category remains visible while viewing the workspace",
+    "description": "Verifies that the sidebar navigation (including 'Boletín 1') stays visible after an exercise is opened in the workspace.",
+    "category": "Logic Module Exercise Selection (Sidebar)",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Sidebar\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Boletín 1\" in the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first exercise title in the exercise list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Workspace\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Sidebar\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Boletín 1\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Exercise selection works after scrolling the exercise list",
+    "description": "Verifies that an exercise can still be opened after scrolling within the exercise list view.",
+    "category": "Logic Module Exercise Selection (Sidebar)",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Boletín 1\" in the sidebar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise list\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to the bottom of the exercise list"
+      },
+      {
+        "type": "action",
+        "description": "Click on an exercise title near the bottom of the exercise list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Workspace\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Boletín 1\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Open Wiki tab and verify wiki content loads",
+    "description": "Verifies that the Wiki tab in the Logic module loads and displays wiki content.",
+    "category": "Wiki (Learning Module)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/logica/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Wiki\" tab in the module navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Wiki content\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Isabelle\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Expand an example card and verify details are shown",
+    "description": "Verifies that an example card expands to reveal a syntax example and a code snippet.",
+    "category": "Wiki (Learning Module)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Wiki\" tab in the module navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Example cards\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible \"Example\" card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Syntax\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Code snippet\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Expand and collapse an example card",
+    "description": "Verifies that an expanded example card can be collapsed back to its compact view.",
+    "category": "Wiki (Learning Module)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Wiki\" tab in the module navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible \"Example\" card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Code snippet\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the same \"Example\" card again"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Code snippet\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Verify multiple example cards can be expanded independently",
+    "description": "Verifies that interacting with a second example card shows its content as expected.",
+    "category": "Wiki (Learning Module)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Wiki\" tab in the module navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Example cards\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on a second visible \"Example\" card (not the first one)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Code snippet\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"example\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Wiki shows loading spinner before content appears",
+    "description": "Verifies that a loading indicator is shown while wiki content is being fetched and then content appears.",
+    "category": "Wiki (Learning Module)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Wiki\" tab in the module navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Loading spinner\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Wait for element \"Wiki content\" to appear"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Wiki content\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Open an exercise workspace and verify core workspace panels are visible",
+    "description": "Verifies a user can select an exercise from the Logic module and see the workspace with rendered proof code and step explanation UI.",
+    "category": "Logic Workspace",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click the sidebar item used to select exercises"
+      },
+      {
+        "type": "action",
+        "description": "Click an exercise in the exercise list to open the workspace"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Workspace\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Explanation\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Rendered proof code area\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Advance to next proof step and verify explanation updates",
+    "description": "Verifies clicking Next advances the proof step and the explanation panel reflects the new current step.",
+    "category": "Logic Workspace",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click the sidebar item used to select exercises"
+      },
+      {
+        "type": "action",
+        "description": "Click an exercise in the exercise list to open the workspace"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Explanation panel\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Next\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Step\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Advance to next proof step and verify hypotheses list updates",
+    "description": "Verifies that moving forward in the proof updates the visible list of active hypotheses.",
+    "category": "Logic Workspace",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click the sidebar item used to select exercises"
+      },
+      {
+        "type": "action",
+        "description": "Click an exercise in the exercise list to open the workspace"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Hypotheses list\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Next\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Hypotheses list\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Advance to next proof step and verify progress bar advances",
+    "description": "Verifies that clicking Next advances the progress indicator in the workspace.",
+    "category": "Logic Workspace",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click the sidebar item used to select exercises"
+      },
+      {
+        "type": "action",
+        "description": "Click an exercise in the exercise list to open the workspace"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Progress bar\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Next\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Progress bar\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "Successful step advance keeps rendered code visible and consistent with navigation",
+    "description": "Verifies that after advancing a step, the rendered proof code area remains visible (workspace stays functional during navigation).",
+    "category": "Logic Workspace",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click the sidebar item used to select exercises"
+      },
+      {
+        "type": "action",
+        "description": "Click an exercise in the exercise list to open the workspace"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Rendered proof code area\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Next\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Rendered proof code area\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Open mode selection modal when starting an exercise",
+    "description": "Verifies that starting an exercise prompts the user to choose a resolution mode via a visible modal.",
+    "category": "Modes of Resolution (Selection Modal)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Start Exercise\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar exercise item"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Exercise\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Seleccione el modo\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Modo Declarativa\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Modo Aplicativa\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Start exercise in Declarative (Isar) mode from the modal",
+    "description": "Verifies that choosing Modo Declarativa opens the workspace in a declarative view.",
+    "category": "Modes of Resolution (Selection Modal)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar exercise item"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Exercise\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Modo Declarativa\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Modo Declarativa\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Workspace\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Isar\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Applicative mode shows unavailable error message when selected",
+    "description": "Verifies that choosing Modo Aplicativa results in a visible unavailable message instead of opening the workspace.",
+    "category": "Modes of Resolution (Selection Modal)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar exercise item"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Exercise\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Modo Aplicativa\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Modo Aplicativa\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Mode unavailable\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Modo Declarativa\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "Applicative mode is disabled and cannot be started",
+    "description": "Verifies that Modo Aplicativa is presented as disabled (non-startable) and does not open the workspace when clicked.",
+    "category": "Modes of Resolution (Selection Modal)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar exercise item"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Exercise\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Modo Aplicativa\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Modo Aplicativa\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Mode unavailable\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/logica/\""
+      }
+    ]
+  },
+  {
+    "id": "TC026",
+    "title": "Mode selection modal appears only after an exercise is selected",
+    "description": "Verifies that the user must select an exercise before the mode modal can appear when attempting to start.",
+    "category": "Modes of Resolution (Selection Modal)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Start Exercise\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Exercise\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Seleccione\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Modo Declarativa\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Workspace\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC027",
+    "title": "Modal remains visible until a mode is chosen",
+    "description": "Verifies that the modal stays on screen and does not transition to workspace until the user selects a mode.",
+    "category": "Modes of Resolution (Selection Modal)",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar exercise item"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Exercise\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Seleccione el modo\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Modo Declarativa\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/logica/\""
+      }
+    ]
+  },
+  {
+    "id": "TC028",
+    "title": "Toggle from Light to Dark theme on the landing page",
+    "description": "Verifies the theme toggle switches the visible UI from Light mode to Dark mode on the landing page.",
+    "category": "Theme Toggle",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"theme toggle button\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"theme toggle button\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Dark\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"dark theme\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC029",
+    "title": "Toggle back from Dark to Light in the same session",
+    "description": "Verifies the toggle can switch back to Light mode after enabling Dark mode.",
+    "category": "Theme Toggle",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"theme toggle button\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Dark\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"theme toggle button\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Light\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"light theme\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC030",
+    "title": "Admin panel remains accessible after closing and reopening within the same session",
+    "description": "Verifies the admin panel UI can be opened, closed, and reopened without page errors.",
+    "category": "Admin Panel and Content Management",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to the bottom of the page"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Admin\" or \"Admin Panel\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Admin Panel\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Close\" or \"Back\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Admin Panel\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC031",
+    "title": "Mobile: Landing Page Responsiveness",
+    "description": "Verifies that the landing page renders correctly on a mobile viewport (375x667) without horizontal scrolling and key elements are visible.",
+    "category": "Mobile Responsiveness",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Set viewport size to 375x667"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Logic\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page does not have horizontal scrollbar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Footer\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC032",
+    "title": "Mobile: Logic Module Sidebar Navigation",
+    "description": "Verifies that the sidebar in the Logic module is usable on mobile devices (collapsible or properly sized).",
+    "category": "Mobile Responsiveness",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Set viewport size to 375x667"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Sidebar\" is visible or toggleable"
+      },
+      {
+        "type": "action",
+        "description": "If sidebar is hidden, click menu button to open it"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Boletín 1\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise list\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC033",
+    "title": "Mobile: Exercise Workspace Layout Stacking",
+    "description": "Verifies that workspace panels stack vertically on mobile to ensure readability.",
+    "category": "Mobile Responsiveness",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Set viewport size to 375x667"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Open an exercise workspace"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Workspace\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Rendered proof code area\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify elements are stacked vertically (check positions)"
+      }
+    ]
+  },
+  {
+    "id": "TC034",
+    "title": "Mobile: Mode Selection Modal",
+    "description": "Verifies that the mode selection modal fits within the mobile screen and buttons are clickable.",
+    "category": "Mobile Responsiveness",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Set viewport size to 375x667"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Trigger 'Start Exercise' modal"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Seleccione el modo\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify button \"Modo Declarativa\" is visible and clickable"
+      }
+    ]
+  },
+  {
+    "id": "TC035",
+    "title": "Desktop: Visual Stability on Resize",
+    "description": "Verifies that resizing the window does not break the layout or overlap critical elements.",
+    "category": "Visual Regression",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /logica/"
+      },
+      {
+        "type": "action",
+        "description": "Set viewport size to 1024x768"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Sidebar\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Resize viewport to 768x1024 (Tablet)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Sidebar\" is visible or adapted"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify content does not overlap"
+      }
+    ]
+  }
+]

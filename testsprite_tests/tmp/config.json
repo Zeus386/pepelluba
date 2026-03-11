@@ -1,0 +1,25 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:8080",
+  "executionArgs": {
+    "projectName": "pepelluba",
+    "projectPath": "c:\\Users\\pepel\\Desktop\\pepeweb\\pepelluba",
+    "testIds": [
+      "TC005",
+      "TC008",
+      "TC009",
+      "TC018",
+      "TC023",
+      "TC024"
+    ],
+    "additionalInstruction": "Run failing tests only",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-rrEaW8qdHqLOub7S7kXWtFk3jgOzworNCvQlVigh5uyjFwUlfVxWIXH8vujY3LUSo65Q53Zro4yTCNBkOP5pTHsuHl2Zq4nC4AxZx5O0aw4oc9EFVfc_0WckzhZr-ACB5XA"
+    }
+  },
+  "serverPort": 64307,
+  "proxy": "http://d1112a96-10ff-49c2-909a-d2725b05282c:8INVmarcYd1nLYFRK5bSVDgyadCvE5Eb@tun.testsprite.com:8080"
+}

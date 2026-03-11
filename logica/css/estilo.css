@@ -669,12 +669,12 @@ body.dark-mode .theme-btn.back-mode {
 
 
 /* First button (Wiki) gets a distinct accent color */
-.theme-btn:first-child {
+#theme-nav .theme-btn:first-child {
     background: linear-gradient(145deg, #c9b896, #a89978);
     color: #fff;
 }
 
-body.dark-mode .theme-btn:first-child {
+body.dark-mode #theme-nav .theme-btn:first-child {
     background: linear-gradient(145deg, #8a7d66, #6b604d);
     color: #f0ebe5;
 }
@@ -692,11 +692,29 @@ body.dark-mode .theme-btn:first-child {
     left: 7rem;
     width: calc(100% - 7rem);
     height: 100%;
-    padding: 0 2rem 0 0.5rem;
+    padding: 0 2rem;
     opacity: 0;
     pointer-events: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--c-accent) transparent;
     transition: opacity var(--transition-smooth), transform var(--transition-smooth);
     will-change: opacity, transform;
+}
+
+.view::-webkit-scrollbar {
+    width: 6px;
+}
+
+.view::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.view::-webkit-scrollbar-thumb {
+    background-color: var(--c-accent);
+    border-radius: 10px;
 }
 
 .section-header,
@@ -786,7 +804,7 @@ body.dark-mode .progress-bar-container {
     justify-content: center;
     justify-items: center;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1320px;
     margin: 0 auto;
 }
 
@@ -891,6 +909,9 @@ body.dark-mode .progress-bar-container {
     padding: 1rem;
     /* Optimized for space */
     gap: 1.25rem;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .panel {
@@ -980,6 +1001,9 @@ body.dark-mode .code-panel {
     position: relative;
     /* Usa el mismo tipo de vidrio que el resto del panel */
     background: rgba(255, 255, 255, 0.88);
+    display: flex;
+    flex-direction: column;
+    contain: none;
 }
 
 body.dark-mode .explanation-panel {
@@ -1028,6 +1052,9 @@ h4 {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
 .wiki-content::-webkit-scrollbar {
@@ -1048,7 +1075,7 @@ h4 {
     transition: box-shadow var(--transition-fast);
     flex-shrink: 0;
     width: 100%;
-    max-width: 1100px;
+    max-width: 1400px;
 }
 
 .wiki-grid-item:hover {
@@ -1146,12 +1173,14 @@ h4 {
 }
 
 .controls {
-    position: absolute;
+    position: sticky;
     bottom: 1.5rem;
-    right: 1.5rem;
+    width: 100%;
     display: flex;
+    justify-content: flex-end;
     gap: 0.75rem;
     z-index: 10;
+    margin-top: 1.25rem;
 }
 
 .control-btn {
@@ -1205,7 +1234,7 @@ html.dark-mode-preload body .theme-btn {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-html.dark-mode-preload body .theme-btn:first-child {
+html.dark-mode-preload body #theme-nav .theme-btn:first-child {
     background: linear-gradient(145deg, #8a7d66, #6b604d);
     color: #f0ebe5;
 }
@@ -1612,23 +1641,60 @@ body.dark-mode .adm-step-card {
     margin-bottom: 1rem;
 }
 
+.adm-step-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
 .adm-step-header strong {
     font-family: 'Outfit', sans-serif;
     font-size: 0.95rem;
     color: var(--c-accent-dark);
 }
 
-.adm-step-header button {
+.adm-step-btn {
     background: none;
-    border: none;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 6px;
     cursor: pointer;
     color: var(--c-text-muted);
-    font-size: 1.1rem;
-    transition: color var(--transition-fast);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: all var(--transition-fast);
 }
 
-.adm-step-header button:hover {
+.adm-step-btn:hover {
+    color: var(--c-text-main);
+    border-color: var(--c-text-main);
+    background: rgba(0,0,0,0.02);
+}
+
+.adm-step-btn.delete:hover {
     color: #d93025;
+    border-color: #d93025;
+    background: rgba(217, 48, 37, 0.05);
+}
+
+body.dark-mode .adm-step-btn {
+    border-color: rgba(255,255,255,0.1);
+}
+
+.adm-step-body {
+    transition: opacity 0.3s ease, height 0.3s ease;
+    overflow: hidden;
+}
+
+.adm-step-card.collapsed .adm-step-body {
+    display: none;
+}
+
+.adm-step-card.collapsed {
+    padding-bottom: 0.5rem;
 }
 
 .adm-step-card textarea {
@@ -1949,22 +2015,15 @@ body.dark-mode .adm-step-card textarea {
         /* Keep titles aligned with the content */
     }
 
-    /* Controls adjustments - Fix them to the screen like desktop */
     .controls {
-        position: fixed !important;
-        bottom: 2rem !important;
-        right: 2rem !important;
-        margin-top: 0 !important;
-        z-index: 1000 !important;
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        padding: 0.5rem;
-        border-radius: 40px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        position: sticky !important;
+        bottom: 1rem !important;
+        z-index: 10 !important;
+        margin-top: 1rem !important;
     }
 
     body.dark-mode .controls {
-        background: rgba(30, 30, 30, 0.7);
+        background: unset;
     }
 
     /* Isabelle Workspace en m√≥vil: Stack vertical por defecto */
@@ -2134,3 +2193,119 @@ body.dark-mode .adm-step-card textarea {
         transition: none !important;
     }
 }
+
+/* ==========================================
+   MODAL DE SELECCI”N DE M…TODO
+   ========================================== */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-backdrop.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 24px;
+    padding: 2.5rem;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    transform: scale(0.95);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-backdrop.visible .modal-content {
+    transform: scale(1);
+}
+
+body.dark-mode .modal-content {
+    background: rgba(30, 30, 30, 0.9);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+
+.modal-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--c-text-main);
+}
+
+.modal-subtitle {
+    font-size: 0.95rem;
+    color: var(--c-text-muted);
+    margin-bottom: 2rem;
+}
+
+.method-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.method-btn {
+    background: var(--c-bg);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 16px;
+    padding: 1.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.method-btn:hover {
+    background: #fff;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    border-color: var(--c-accent);
+}
+
+body.dark-mode .method-btn {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.08);
+}
+
+body.dark-mode .method-btn:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--c-accent);
+}
+
+.method-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.method-name {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    color: var(--c-text-main);
+}
+
+.method-desc {
+    font-size: 0.8rem;
+    color: var(--c-text-muted);
+}
+

@@ -248,10 +248,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        closeSidebarSubmenu();
+        const isSwitching = sidebarSubmenu.classList.contains('open') && sidebarSubmenuThemeId && sidebarSubmenuThemeId !== themeId;
+        const prevAnchor = sidebarSubmenuAnchorBtn;
+        if (prevAnchor) prevAnchor.setAttribute('aria-expanded', 'false');
         sidebarSubmenuThemeId = themeId;
         sidebarSubmenuAnchorBtn = anchorBtn || null;
         if (sidebarSubmenuAnchorBtn) sidebarSubmenuAnchorBtn.setAttribute('aria-expanded', 'true');
+
+        const activeRelMatch = window.location.hash.match(new RegExp(`#\\/logica\\/T${themeId}\\/(rel\\d+)`));
+        const activeRelId = activeRelMatch ? activeRelMatch[1] : null;
 
         const themeData = window.EXERCISES_DATA?.[themeId];
         const relEntries = Object.entries(themeData?.relations || {}).sort((a, b) => {
@@ -260,28 +265,53 @@ document.addEventListener('DOMContentLoaded', () => {
             return na - nb;
         });
 
-        const frag = document.createDocumentFragment();
-        relEntries.forEach(([relId, relData]) => {
-            const numRaw = String(relId).replace('rel', '');
-            const num = numRaw ? numRaw.padStart(2, '0') : '';
-            const bLabel = `B${num}`;
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'theme-btn';
-            btn.textContent = bLabel;
-            btn.title = relData?.title || bLabel;
-            btn.onclick = () => {
-                closeSidebarSubmenu();
-                window.location.hash = `#/logica/T${themeId}/${relId}`;
-                if (mobileSidebarMedia.matches) closeMobileSidebar();
-            };
-            frag.appendChild(btn);
-        });
-        sidebarSubmenuNav.innerHTML = '';
-        sidebarSubmenuNav.appendChild(frag);
+        const render = () => {
+            const frag = document.createDocumentFragment();
+            relEntries.forEach(([relId, relData]) => {
+                const numRaw = String(relId).replace('rel', '');
+                const num = Number.parseInt(numRaw, 10);
+                const bLabel = Number.isFinite(num) ? `B${num}` : 'B';
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'theme-btn';
+                btn.textContent = bLabel;
+                btn.title = relData?.title || bLabel;
+                if (activeRelId && relId === activeRelId) btn.classList.add('active');
+                btn.onclick = () => {
+                    closeSidebarSubmenu();
+                    window.location.hash = `#/logica/T${themeId}/${relId}`;
+                    if (mobileSidebarMedia.matches) closeMobileSidebar();
+                };
+                frag.appendChild(btn);
+            });
+            sidebarSubmenuNav.innerHTML = '';
+            sidebarSubmenuNav.appendChild(frag);
+        };
 
-        sidebarSubmenu.classList.add('open');
-        positionSidebarSubmenu();
+        if (isSwitching) {
+            // Animamos la posición vertical inmediatamente hacia el nuevo botón
+            positionSidebarSubmenu();
+            
+            sidebarSubmenuNav.animate([
+                { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+                { opacity: 0, transform: 'translate3d(-6px, 0, 0)' }
+            ], { duration: 120, easing: 'ease-out', fill: 'forwards' }).finished.then(() => {
+                render();
+                positionSidebarSubmenu();
+                sidebarSubmenuNav.animate([
+                    { opacity: 0, transform: 'translate3d(6px, 0, 0)' },
+                    { opacity: 1, transform: 'translate3d(0, 0, 0)' }
+                ], { duration: 180, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
+            });
+        } else {
+            closeSidebarSubmenu();
+            sidebarSubmenuThemeId = themeId;
+            sidebarSubmenuAnchorBtn = anchorBtn || null;
+            if (sidebarSubmenuAnchorBtn) sidebarSubmenuAnchorBtn.setAttribute('aria-expanded', 'true');
+            render();
+            sidebarSubmenu.classList.add('open');
+            positionSidebarSubmenu();
+        }
 
         if (!hasSubmenuGlobalListeners) {
             hasSubmenuGlobalListeners = true;
@@ -294,6 +324,77 @@ document.addEventListener('DOMContentLoaded', () => {
             }, { passive: true });
             window.addEventListener('resize', positionSidebarSubmenu, { passive: true });
             window.addEventListener('orientationchange', positionSidebarSubmenu, { passive: true });
+        }
+    }
+
+    function openSidebarSubmenuEx(anchorBtn) {
+        ensureSidebarSubmenu();
+        if (!sidebarSubmenu || !sidebarSubmenuNav) return;
+
+        if (sidebarSubmenuThemeId === 'EX') {
+            closeSidebarSubmenu();
+            return;
+        }
+
+        const isSwitching = sidebarSubmenu.classList.contains('open') && sidebarSubmenuThemeId && sidebarSubmenuThemeId !== 'EX';
+        const prevAnchor = sidebarSubmenuAnchorBtn;
+        if (prevAnchor) prevAnchor.setAttribute('aria-expanded', 'false');
+        sidebarSubmenuThemeId = 'EX';
+        sidebarSubmenuAnchorBtn = anchorBtn || null;
+        if (sidebarSubmenuAnchorBtn) sidebarSubmenuAnchorBtn.setAttribute('aria-expanded', 'true');
+
+        const activeExamMatch = window.location.hash.match(/#\/logica\/(P1|P2|C)\b/);
+        const activeExam = activeExamMatch ? activeExamMatch[1] : null;
+
+        const entries = [
+            { id: 'P1', title: 'Primeros Parciales' },
+            { id: 'P2', title: 'Segundos Parciales' },
+            { id: 'C', title: 'Convocatorias' }
+        ];
+
+        const render = () => {
+            const frag = document.createDocumentFragment();
+            entries.forEach((ex) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'theme-btn';
+                btn.textContent = ex.id;
+                btn.title = ex.title;
+                if (activeExam && activeExam === ex.id) btn.classList.add('active');
+                btn.onclick = () => {
+                    closeSidebarSubmenu();
+                    window.location.hash = `#/logica/${ex.id}`;
+                    if (mobileSidebarMedia.matches) closeMobileSidebar();
+                };
+                frag.appendChild(btn);
+            });
+            sidebarSubmenuNav.innerHTML = '';
+            sidebarSubmenuNav.appendChild(frag);
+        };
+
+        if (isSwitching) {
+            // Animamos la posición vertical inmediatamente hacia el nuevo botón
+            positionSidebarSubmenu();
+
+            sidebarSubmenuNav.animate([
+                { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+                { opacity: 0, transform: 'translate3d(-6px, 0, 0)' }
+            ], { duration: 120, easing: 'ease-out', fill: 'forwards' }).finished.then(() => {
+                render();
+                positionSidebarSubmenu();
+                sidebarSubmenuNav.animate([
+                    { opacity: 0, transform: 'translate3d(6px, 0, 0)' },
+                    { opacity: 1, transform: 'translate3d(0, 0, 0)' }
+                ], { duration: 180, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
+            });
+        } else {
+            closeSidebarSubmenu();
+            sidebarSubmenuThemeId = 'EX';
+            sidebarSubmenuAnchorBtn = anchorBtn || null;
+            if (sidebarSubmenuAnchorBtn) sidebarSubmenuAnchorBtn.setAttribute('aria-expanded', 'true');
+            render();
+            sidebarSubmenu.classList.add('open');
+            positionSidebarSubmenu();
         }
     }
 
@@ -413,7 +514,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
 
     async function playIntroSequence() {
-        if (!DOM.screens.intro || !DOM.intro.text || !DOM.intro.reveal) return;
         // Fase 1: Aparece @pepelluba
         await DOM.intro.text.animate([
             { opacity: 0 },
@@ -434,11 +534,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function transitionToApp(withAnimation = true) {
         // Cancel all ongoing animations
-        [DOM.screens.intro, DOM.screens.mainApp].filter(Boolean).forEach(el => {
+        [DOM.screens.intro, DOM.screens.mainApp].forEach(el => {
             el.getAnimations().forEach(anim => anim.cancel());
         });
 
-        if (withAnimation && DOM.screens.intro) {
+        if (withAnimation) {
             // Animación de salida de la intro (agrandar y difuminar)
             const exitAnim = DOM.screens.intro.animate([
                 { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' },
@@ -455,8 +555,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // BUGFIX: limpiar clase direct-logica para que el CSS normal tome el control
         document.documentElement.classList.remove('direct-logica');
 
-        if (DOM.screens.intro) DOM.screens.intro.classList.replace('active', 'hidden');
-        if (DOM.screens.mainApp) DOM.screens.mainApp.classList.replace('hidden', 'active');
+        DOM.screens.intro.classList.replace('active', 'hidden');
+        DOM.screens.mainApp.classList.replace('hidden', 'active');
         sidebar.classList.add('active');
         DOM.globalHeader.classList.remove('hidden-element');
         syncMobileSidebarUI();
@@ -479,9 +579,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function transitionToIntro(withAnimation = true) {
-        if (!DOM.screens.intro || !DOM.screens.mainApp) return;
         // Cancel all ongoing animations
-        [DOM.screens.intro, DOM.screens.mainApp].filter(Boolean).forEach(el => {
+        [DOM.screens.intro, DOM.screens.mainApp].forEach(el => {
             el.getAnimations().forEach(anim => anim.cancel());
         });
 
@@ -511,24 +610,20 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.screens.intro.style.opacity = '1';
         DOM.screens.intro.style.transform = 'scale(1)';
 
-        if (withAnimation && DOM.intro.text && DOM.intro.reveal) {
+        if (withAnimation) {
             DOM.intro.text.style.opacity = '0';
             DOM.intro.reveal.classList.add('hidden');
             playIntroSequence();
         } else {
-            if (DOM.intro.reveal) {
-                DOM.intro.reveal.classList.remove('hidden');
-                DOM.intro.reveal.style.opacity = '1';
-            }
-            if (DOM.intro.text) DOM.intro.text.style.opacity = '1';
+            DOM.intro.reveal.classList.remove('hidden');
+            DOM.intro.reveal.style.opacity = '1';
+            DOM.intro.text.style.opacity = '1';
         }
     }
 
-    if (DOM.intro.btn) {
-        DOM.intro.btn.addEventListener('click', () => {
-            window.location.hash = '#/logica';
-        });
-    }
+    DOM.intro.btn.addEventListener('click', () => {
+        window.location.hash = '#/logica';
+    });
 
     function showIntro(withAnimation = true) {
         // Wrapper para llamar a la transición correcta
@@ -573,34 +668,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (hash.startsWith('#/logica')) {
             const parts = hash.split('/');
-            const wasInIntro = !!(DOM.screens.intro && DOM.screens.intro.classList.contains('active'));
+            const wasInIntro = DOM.screens.intro.classList.contains('active');
             const isDirect = document.documentElement.classList.contains('direct-logica');
 
             // 1. Asegurar estado de la App
-            if (!DOM.screens.intro) {
-                document.documentElement.classList.remove('direct-logica');
-                if (DOM.screens.mainApp) {
-                    DOM.screens.mainApp.classList.remove('hidden');
-                    DOM.screens.mainApp.classList.add('active');
-                    DOM.screens.mainApp.style.opacity = '1';
-                    DOM.screens.mainApp.style.transform = 'translate3d(0, 0, 0) scale(1)';
-                }
-                if (sidebar) sidebar.classList.add('active');
-                syncMobileSidebarUI();
-                if (DOM.globalHeader) DOM.globalHeader.classList.remove('hidden-element');
-                if (!state.sidebarInitialized) {
-                    renderSidebar();
-                    state.sidebarInitialized = true;
-                }
-            } else if (wasInIntro) {
+            if (wasInIntro) {
                 if (!state.sidebarInitialized) {
                     renderSidebar();
                     state.sidebarInitialized = true;
                 }
                 await transitionToApp(!isDirect);
-            } else if (DOM.screens.mainApp && !DOM.screens.mainApp.classList.contains('active')) {
+            } else if (!DOM.screens.mainApp.classList.contains('active')) {
                 document.documentElement.classList.remove('direct-logica');
-                if (DOM.screens.intro) DOM.screens.intro.classList.replace('active', 'hidden');
+                DOM.screens.intro.classList.replace('active', 'hidden');
                 DOM.screens.mainApp.classList.replace('hidden', 'active');
                 DOM.screens.mainApp.style.opacity = '1';
                 DOM.screens.mainApp.style.transform = 'translate3d(0, 0, 0) scale(1)';
@@ -618,12 +698,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 // #/logica -> Wiki
                 openWikiView(!wasInIntro);
             } else if (parts.length === 3) {
-                // #/logica/EX -> Menú de Exámenes
                 if (parts[2] === 'EX') {
-                    renderExamsMenu(!wasInIntro);
+                    openWikiView(!wasInIntro);
+                    const exBtn = Array.from(document.querySelectorAll('#theme-nav .theme-btn')).find(b => b.textContent === 'EX');
+                    openSidebarSubmenuEx(exBtn || null);
+                } else if (parts[2].startsWith('T')) {
+                    const themeId = parts[2].slice(1);
+                    const themeData = window.EXERCISES_DATA?.[themeId];
+                    const relEntries = Object.entries(themeData?.relations || {});
+                    if (relEntries.length === 1) {
+                        const [relId] = relEntries[0];
+                        renderThemeEjercicios(themeId, relId, !wasInIntro);
+                    } else {
+                        openWikiView(!wasInIntro);
+                        const tBtn = Array.from(document.querySelectorAll('#theme-nav .theme-btn')).find(b => b.textContent === `T${themeId}`);
+                        openSidebarSubmenu(themeId, tBtn || null);
+                    }
                 } else {
-                    // #/logica/T1 o #/logica/P1 -> Relaciones
-                    const themeId = parts[2].startsWith('T') ? parts[2].slice(1) : parts[2];
+                    const themeId = parts[2];
                     const themeData = window.EXERCISES_DATA?.[themeId];
                     const relEntries = Object.entries(themeData?.relations || {});
                     if (relEntries.length === 1) {
@@ -652,12 +744,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else {
             // Mostrar Intro
-            if (DOM.screens.intro) {
-                const wasInApp = DOM.screens.mainApp.classList.contains('active');
-                if (wasInApp) transitionToIntro(true);
-                else showIntro(true);
+            const wasInApp = DOM.screens.mainApp.classList.contains('active');
+            if (wasInApp) {
+                transitionToIntro(true);
             } else {
-                window.location.href = (window.location.protocol === 'file:') ? '../index.html' : '../';
+                showIntro(true);
             }
         }
     }
@@ -693,13 +784,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (['P1', 'P2', 'C'].includes(parts[2])) {
                 window.location.hash = '#/logica/EX';
             } else {
-                window.location.hash = '#/logica';
+                window.location.hash = '#/logica'; // De Tema a Wiki
             }
         } else if (parts.length === 2 && parts[1] === 'logica') {
             // De Wiki a Intro
-            window.location.href = (window.location.protocol === 'file:') ? '../index.html' : '../';
+            window.location.hash = '';
         } else {
-            window.location.href = (window.location.protocol === 'file:') ? '../index.html' : '../';
+            window.location.hash = '';
         }
     });
 
@@ -794,13 +885,14 @@ document.addEventListener('DOMContentLoaded', () => {
         exBtn.className = 'theme-btn';
         exBtn.textContent = 'EX';
         exBtn.title = 'Exámenes';
+        exBtn.setAttribute('aria-expanded', 'false');
         exBtn.onclick = () => {
             closeSidebarSubmenu();
-            window.location.hash = '#/logica/EX';
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
             exBtn.classList.add('active');
+            openSidebarSubmenuEx(exBtn);
             if (window.matchMedia('(max-width: 1024px), (hover: none) and (pointer: coarse)').matches) {
-                closeMobileSidebar();
+                positionSidebarSubmenu();
             }
         };
         DOM.themeBtns.push(exBtn);

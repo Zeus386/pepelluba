@@ -419,6 +419,24 @@ input.theme-toggle {
     pointer-events: auto;
 }
 
+#sidebar-submenu {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%) translateX(10px) scale(0.98);
+    z-index: 55;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1), transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+}
+
+#sidebar-submenu.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%) translateX(0) scale(1);
+}
+
 /* ==========================================
    LIQUID GLASS (reference-accurate)
    ========================================== */
@@ -765,6 +783,58 @@ body.dark-mode .progress-bar-container {
     gap: 2rem;
     perspective: 1000px;
     /* Requisito para el efecto 3D holográfico */
+}
+
+.grid.selection-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    perspective: none;
+}
+
+.selection-card {
+    appearance: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    background: transparent;
+    border-radius: 22px;
+    padding: 0;
+    overflow: hidden;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
+}
+
+.selection-card:active {
+    transform: scale(0.99);
+}
+
+.selection-card .selection-content {
+    padding: 1.6rem 1.6rem 1.4rem;
+}
+
+.selection-card .selection-kicker {
+    font-size: 0.7rem;
+    opacity: 0.55;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+}
+
+.selection-card .selection-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.25;
+    margin: 0;
+    color: var(--c-text-main);
+}
+
+.selection-card .selection-desc {
+    margin-top: 0.6rem;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    opacity: 0.7;
+    color: var(--c-text-muted);
 }
 
 /* TARJETAS DE EJERCICIOS - HOLOGRÁFICAS (3D) Y LIQUID GLASS */
@@ -1643,7 +1713,7 @@ body.dark-mode .adm-step-card textarea {
 /* ==========================================
    MOBILE & TABLET RESPONSIVE
    ========================================== */
-@media (max-width: 1024px) {
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
 
     /* Permitir scroll interno solo donde es necesario */
     html,

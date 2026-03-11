@@ -3,7 +3,7 @@ const EXERCISES_DATA = {
         title: "Tema 1: Sintaxis y semántica de la lógica proposicional",
         relations: {
             "rel1": {
-                title: "Relación 01: Sintaxis y semántica de la lógica proposicional",
+                title: "Sintaxis y semántica de la lógica proposicional",
                 exercises: {
                     "exe1": { title: "A ⟶ E, A ⊢ E", name: "1_1_auto", defaultMethod: "Solución Automática (auto)" },
                     "exe2": { title: "T ∧ P ⟶ S, T, P ⊢ S", name: "1_2_auto", defaultMethod: "Solución Automática (auto)" }
@@ -15,19 +15,19 @@ const EXERCISES_DATA = {
         title: "Tema 2: Deducción natural proposicional",
         relations: {
             "rel2": {
-                title: "Relación 02: Deducción natural en lógica proposicional (I)",
+                title: "Deducción natural en lógica proposicional (I)",
                 exercises: {
                     "exe1": { title: "Ejercicio base relación 2", name: "2_1", defaultMethod: "Deducción Natural" }
                 }
             },
             "rel3": {
-                title: "Relación 03: Deducción natural en lógica proposicional (II)",
+                title: "Deducción natural en lógica proposicional (II)",
                 exercises: {
                     "exe1": { title: "Ejercicio base relación 3", name: "b3_e1", defaultMethod: "Deducción Natural" }
                 }
             },
             "rel4": {
-                title: "Relación 04: Deducción natural en lógica proposicional (III)",
+                title: "Deducción natural en lógica proposicional (III)",
                 exercises: {
                     "exe1": { title: "Ejercicio base relación 4", name: "b4_e1", defaultMethod: "Deducción Natural" }
                 }
@@ -38,7 +38,7 @@ const EXERCISES_DATA = {
         title: "Tema 3: Sintaxis y semántica de la lógica de primer orden",
         relations: {
             "rel5": {
-                title: "Relación 05: Lógica de primer orden",
+                title: "Lógica de primer orden",
                 exercises: {
                     "exe1": { title: "Ejercicio base relación 5", name: "b5_e1", defaultMethod: "Deducción Natural" }
                 }
@@ -49,19 +49,19 @@ const EXERCISES_DATA = {
         title: "Tema 4: Deducción natural en lógica de primer orden",
         relations: {
             "rel6": {
-                title: "Relación 06: Deducción natural en lógica de primer orden (I)",
+                title: "Deducción natural en lógica de primer orden (I)",
                 exercises: {
                     "exe1": { title: "Ejercicio base relación 6", name: "b6_e1", defaultMethod: "Deducción Natural" }
                 }
             },
             "rel7": {
-                title: "Relación 07: Deducción natural en lógica de primer orden (II)",
+                title: "Deducción natural en lógica de primer orden (II)",
                 exercises: {
                     "exe1": { title: "Ejercicio base relación 7", name: "b7_e1", defaultMethod: "Deducción Natural" }
                 }
             },
             "rel8": {
-                title: "Relación 08: Lógica de primer orden con igualdad",
+                title: "Lógica de primer orden con igualdad",
                 exercises: {
                     "exe1": { title: "Ejercicio base relación 8", name: "b8_e1", defaultMethod: "Deducción Natural" }
                 }
@@ -72,7 +72,7 @@ const EXERCISES_DATA = {
         title: "Tema 5: Programación funcional en Isabelle",
         relations: {
             "rel9": {
-                title: "Relación 09: Programación funcional en Isabelle",
+                title: "Programación funcional en Isabelle",
                 exercises: {
                     "exe1": { title: "Ejercicio base relación 9", name: "b9_e1", defaultMethod: "Funcional" }
                 }
@@ -83,13 +83,13 @@ const EXERCISES_DATA = {
         title: "Tema 6: Razonamiento ecuacional e inducción",
         relations: {
             "rel10": {
-                title: "Relación 10: Razonamiento ecuacional en Isabelle (I)",
+                title: "Razonamiento ecuacional en Isabelle (I)",
                 exercises: {
                     "exe1": { title: "Ejercicio base relación 10", name: "b10_e1", defaultMethod: "Razonamiento ecuacional" }
                 }
             },
             "rel11": {
-                title: "Relación 11: Razonamiento ecuacional en Isabelle (II)",
+                title: "Razonamiento ecuacional en Isabelle (II)",
                 exercises: {
                     "exe1": { title: "Ejercicio base relación 11", name: "b11_e1", defaultMethod: "Razonamiento ecuacional" }
                 }
@@ -97,10 +97,10 @@ const EXERCISES_DATA = {
         }
     },
     "P1": {
-        title: "Primer Parcial",
+        title: "Primeros Parciales",
         relations: {
             "rel1": {
-                title: "Primer Parcial - Convocatoria 2023",
+                title: "Convocatoria 2023",
                 exercises: {
                     "exe1": { title: "Primer parcial 2023 - Ejercicio 1", name: "p1_2023_e1", defaultMethod: "Examen" }
                 }
@@ -108,10 +108,10 @@ const EXERCISES_DATA = {
         }
     },
     "P2": {
-        title: "Segundo Parcial",
+        title: "Segundos Parciales",
         relations: {
             "rel1": {
-                title: "Segundo Parcial - Convocatoria 2023",
+                title: "Convocatoria 2023",
                 exercises: {
                     "exe1": { title: "Segundo parcial 2023 - Ejercicio 1", name: "p2_2023_e1", defaultMethod: "Examen" }
                 }
@@ -119,7 +119,7 @@ const EXERCISES_DATA = {
         }
     },
     "C": {
-        title: "Convocatoria",
+        title: "Convocatorias",
         relations: {
             "rel1": {
                 title: "Convocatoria 2023",

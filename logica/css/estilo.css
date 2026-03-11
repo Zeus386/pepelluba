@@ -419,6 +419,24 @@ input.theme-toggle {
     pointer-events: auto;
 }
 
+#sidebar-submenu {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%) translateX(10px) scale(0.98);
+    z-index: 55;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1), transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+}
+
+#sidebar-submenu.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%) translateX(0) scale(1);
+}
+
 /* ==========================================
    LIQUID GLASS (reference-accurate)
    ========================================== */
@@ -1643,7 +1661,7 @@ body.dark-mode .adm-step-card textarea {
 /* ==========================================
    MOBILE & TABLET RESPONSIVE
    ========================================== */
-@media (max-width: 1024px) {
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
 
     /* Permitir scroll interno solo donde es necesario */
     html,

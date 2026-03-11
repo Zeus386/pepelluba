@@ -181,7 +181,121 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
     const mobileSidebarBackdrop = document.getElementById('mobile-sidebar-backdrop');
     const sidebar = document.getElementById('sidebar');
-    const mobileSidebarMedia = window.matchMedia('(max-width: 1024px)');
+    const mobileSidebarMedia = window.matchMedia('(max-width: 1024px), (hover: none) and (pointer: coarse)');
+    let sidebarSubmenu;
+    let sidebarSubmenuNav;
+    let sidebarSubmenuThemeId = null;
+    let sidebarSubmenuAnchorBtn = null;
+    let hasSubmenuGlobalListeners = false;
+
+    function ensureSidebarSubmenu() {
+        if (sidebarSubmenu && sidebarSubmenuNav) return;
+        sidebarSubmenu = document.getElementById('sidebar-submenu');
+        sidebarSubmenuNav = document.getElementById('sidebar-submenu-nav');
+        if (sidebarSubmenu && sidebarSubmenuNav) return;
+
+        const el = document.createElement('aside');
+        el.id = 'sidebar-submenu';
+        el.setAttribute('aria-label', 'Submenú');
+        el.innerHTML = `
+            <div class="liquidGlass-wrapper sidebar-dock">
+                <div class="liquidGlass-effect"></div>
+                <div class="liquidGlass-tint"></div>
+                <div class="liquidGlass-shine"></div>
+                <div class="liquidGlass-text sidebar-dock-inner">
+                    <nav id="sidebar-submenu-nav"></nav>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(el);
+        sidebarSubmenu = el;
+        sidebarSubmenuNav = el.querySelector('#sidebar-submenu-nav');
+    }
+
+    function closeSidebarSubmenu() {
+        if (!sidebarSubmenu) return;
+        sidebarSubmenu.classList.remove('open');
+        sidebarSubmenuThemeId = null;
+        if (sidebarSubmenuAnchorBtn) {
+            sidebarSubmenuAnchorBtn.setAttribute('aria-expanded', 'false');
+        }
+        sidebarSubmenuAnchorBtn = null;
+        if (sidebarSubmenuNav) sidebarSubmenuNav.innerHTML = '';
+    }
+
+    function positionSidebarSubmenu() {
+        if (!sidebarSubmenu || !sidebarSubmenu.classList.contains('open')) return;
+        if (!sidebar) return;
+        const anchorRect = sidebar.getBoundingClientRect();
+
+        sidebarSubmenu.style.left = `${Math.round(anchorRect.right + 12)}px`;
+
+        const submenuRect = sidebarSubmenu.getBoundingClientRect();
+        const viewportH = window.innerHeight || document.documentElement.clientHeight;
+        const minCenter = 16 + submenuRect.height / 2;
+        const maxCenter = viewportH - 16 - submenuRect.height / 2;
+        const desiredCenter = anchorRect.top + anchorRect.height / 2;
+        const center = Math.max(minCenter, Math.min(maxCenter, desiredCenter));
+        sidebarSubmenu.style.top = `${Math.round(center)}px`;
+    }
+
+    function openSidebarSubmenu(themeId, anchorBtn) {
+        ensureSidebarSubmenu();
+        if (!sidebarSubmenu || !sidebarSubmenuNav) return;
+
+        if (sidebarSubmenuThemeId === themeId) {
+            closeSidebarSubmenu();
+            return;
+        }
+
+        closeSidebarSubmenu();
+        sidebarSubmenuThemeId = themeId;
+        sidebarSubmenuAnchorBtn = anchorBtn || null;
+        if (sidebarSubmenuAnchorBtn) sidebarSubmenuAnchorBtn.setAttribute('aria-expanded', 'true');
+
+        const themeData = window.EXERCISES_DATA?.[themeId];
+        const relEntries = Object.entries(themeData?.relations || {}).sort((a, b) => {
+            const na = parseInt(String(a[0]).replace('rel', ''), 10) || 0;
+            const nb = parseInt(String(b[0]).replace('rel', ''), 10) || 0;
+            return na - nb;
+        });
+
+        const frag = document.createDocumentFragment();
+        relEntries.forEach(([relId, relData]) => {
+            const numRaw = String(relId).replace('rel', '');
+            const num = numRaw ? numRaw.padStart(2, '0') : '';
+            const bLabel = `B${num}`;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'theme-btn';
+            btn.textContent = bLabel;
+            btn.title = relData?.title || bLabel;
+            btn.onclick = () => {
+                closeSidebarSubmenu();
+                window.location.hash = `#/logica/T${themeId}/${relId}`;
+                if (mobileSidebarMedia.matches) closeMobileSidebar();
+            };
+            frag.appendChild(btn);
+        });
+        sidebarSubmenuNav.innerHTML = '';
+        sidebarSubmenuNav.appendChild(frag);
+
+        sidebarSubmenu.classList.add('open');
+        positionSidebarSubmenu();
+
+        if (!hasSubmenuGlobalListeners) {
+            hasSubmenuGlobalListeners = true;
+            document.addEventListener('pointerdown', (e) => {
+                if (!sidebarSubmenu || !sidebarSubmenu.classList.contains('open')) return;
+                const target = e.target;
+                if (sidebar && sidebar.contains(target)) return;
+                if (sidebarSubmenu.contains(target)) return;
+                closeSidebarSubmenu();
+            }, { passive: true });
+            window.addEventListener('resize', positionSidebarSubmenu, { passive: true });
+            window.addEventListener('orientationchange', positionSidebarSubmenu, { passive: true });
+        }
+    }
 
     function closeMobileSidebar() {
         sidebar.classList.remove('open');
@@ -190,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         DOM.screens.mainApp.classList.remove('sidebar-open');
         document.body.classList.remove('sidebar-open'); // para el selector del toggle (fuera de main-app)
+        closeSidebarSubmenu();
         if (mobileSidebarToggle) {
             mobileSidebarToggle.setAttribute('aria-expanded', 'false');
         }
@@ -454,6 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Router Multinivel (Intro / Main / Relations / Exercise)
     async function router() {
         const hash = window.location.hash;
+        closeSidebarSubmenu();
 
         if (hash.startsWith('#/logica')) {
             const parts = hash.split('/');
@@ -508,7 +624,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     // #/logica/T1 o #/logica/P1 -> Relaciones
                     const themeId = parts[2].startsWith('T') ? parts[2].slice(1) : parts[2];
-                    renderRelations(themeId, !wasInIntro);
+                    const themeData = window.EXERCISES_DATA?.[themeId];
+                    const relEntries = Object.entries(themeData?.relations || {});
+                    if (relEntries.length === 1) {
+                        const [relId] = relEntries[0];
+                        renderThemeEjercicios(themeId, relId, !wasInIntro);
+                    } else {
+                        renderRelations(themeId, !wasInIntro);
+                    }
                 }
             } else if (parts.length === 4) {
                 // #/logica/T1/rel1 -> Lista de Ejercicios
@@ -534,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (wasInApp) transitionToIntro(true);
                 else showIntro(true);
             } else {
-                window.location.href = '../index.html';
+                window.location.href = (window.location.protocol === 'file:') ? '../index.html' : '../';
             }
         }
     }
@@ -570,16 +693,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (['P1', 'P2', 'C'].includes(parts[2])) {
                 window.location.hash = '#/logica/EX';
             } else {
-                if (DOM.screens.intro) window.location.hash = '';
-                else window.location.href = '../index.html';
+                window.location.hash = '#/logica';
             }
         } else if (parts.length === 2 && parts[1] === 'logica') {
             // De Wiki a Intro
-            if (DOM.screens.intro) window.location.hash = '';
-            else window.location.href = '../index.html';
+            window.location.href = (window.location.protocol === 'file:') ? '../index.html' : '../';
         } else {
-            if (DOM.screens.intro) window.location.hash = '';
-            else window.location.href = '../index.html';
+            window.location.href = (window.location.protocol === 'file:') ? '../index.html' : '../';
         }
     });
 
@@ -619,10 +739,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 return;
             }
+            closeSidebarSubmenu();
             window.location.hash = '#/logica';
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
             wikiBtn.classList.add('active');
-            if (window.matchMedia('(max-width: 1024px)').matches) {
+            if (window.matchMedia('(max-width: 1024px), (hover: none) and (pointer: coarse)').matches) {
                 closeMobileSidebar();
             }
         };
@@ -641,12 +762,22 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.className = 'theme-btn';
             btn.textContent = `T${themeId}`;
             btn.title = `Tema ${themeId}`;
+            btn.setAttribute('aria-expanded', 'false');
             btn.onclick = () => {
-                window.location.hash = `#/logica/T${themeId}`;
                 document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                if (window.matchMedia('(max-width: 1024px)').matches) {
-                    closeMobileSidebar();
+                const relCount = Object.keys(window.EXERCISES_DATA?.[themeId]?.relations || {}).length;
+                if (relCount > 1) {
+                    openSidebarSubmenu(themeId, btn);
+                } else {
+                    closeSidebarSubmenu();
+                    window.location.hash = `#/logica/T${themeId}`;
+                    if (window.matchMedia('(max-width: 1024px), (hover: none) and (pointer: coarse)').matches) {
+                        closeMobileSidebar();
+                    }
+                }
+                if (window.matchMedia('(max-width: 1024px), (hover: none) and (pointer: coarse)').matches) {
+                    positionSidebarSubmenu();
                 }
             };
             DOM.themeBtns.push(btn);
@@ -664,10 +795,11 @@ document.addEventListener('DOMContentLoaded', () => {
         exBtn.textContent = 'EX';
         exBtn.title = 'Exámenes';
         exBtn.onclick = () => {
+            closeSidebarSubmenu();
             window.location.hash = '#/logica/EX';
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
             exBtn.classList.add('active');
-            if (window.matchMedia('(max-width: 1024px)').matches) {
+            if (window.matchMedia('(max-width: 1024px), (hover: none) and (pointer: coarse)').matches) {
                 closeMobileSidebar();
             }
         };
@@ -724,23 +856,25 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         exams.forEach(ex => {
-            const card = document.createElement('div');
-            card.className = 'exercise-card liquidGlass-wrapper';
-            card.innerHTML = `
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'selection-card liquidGlass-wrapper';
+            btn.setAttribute('aria-label', ex.title);
+            btn.innerHTML = `
                 <div class="liquidGlass-effect"></div>
                 <div class="liquidGlass-tint"></div>
                 <div class="liquidGlass-shine"></div>
-                <div class="liquidGlass-text card-content" style="padding: 1.5rem; text-align: left;">
-                    <div style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 0.5rem; letter-spacing: 2px;">CATEGORÍA</div>
-                    <h4 style="font-size: 1.5rem; margin-bottom: 0.2rem; color: var(--c-text-main);">${ex.id}</h4>
-                    <p style="font-size: 0.75rem; opacity: 0.7; line-height: 1.4;">${ex.title}</p>
+                <div class="liquidGlass-text selection-content">
+                    <div class="selection-kicker">EXÁMENES</div>
+                    <div class="selection-title">${ex.title}</div>
+                    <div class="selection-desc">${ex.desc}</div>
                 </div>
             `;
-            setupCardInteractions(card);
-            card.onclick = () => { window.location.hash = `#/logica/${ex.id}`; };
-            frag.appendChild(card);
+            btn.onclick = () => { window.location.hash = `#/logica/${ex.id}`; };
+            frag.appendChild(btn);
         });
 
+        DOM.relationsGrid.classList.add('selection-grid');
         DOM.relationsGrid.innerHTML = '';
         DOM.relationsGrid.appendChild(frag);
 
@@ -777,33 +911,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const relations = themeData.relations || {};
         const relEntries = Object.entries(relations);
 
-        // Si solo hay una relación, podrías saltar directo, pero para ser consistente con "normalmente hay varias":
-        relEntries.forEach(([relId, relData]) => {
-            const card = document.createElement('div');
-            card.className = 'exercise-card liquidGlass-wrapper';
-            const num = relId.replace('rel', '').padStart(2, '0');
+        const getRelNum = (id) => {
+            const raw = String(id || '').replace('rel', '');
+            if (!raw) return '';
+            return raw.padStart(2, '0');
+        };
 
-            card.innerHTML = `
+        relEntries.forEach(([relId, relData]) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'selection-card liquidGlass-wrapper';
+            const num = getRelNum(relId);
+            btn.setAttribute('aria-label', `Relación ${num}: ${relData.title}`);
+            btn.innerHTML = `
                 <div class="liquidGlass-effect"></div>
                 <div class="liquidGlass-tint"></div>
                 <div class="liquidGlass-shine"></div>
-                <div class="liquidGlass-text card-content" style="padding: 1.5rem; text-align: left;">
-                    <div style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 0.5rem; letter-spacing: 2px;">RELACIÓN ${num}</div>
-                    <h4 style="font-size: 1.1rem; line-height: 1.3; margin: 0; color: var(--c-text-main); font-weight: 600;">${relData.title}</h4>
+                <div class="liquidGlass-text selection-content">
+                    <div class="selection-kicker">RELACIÓN ${num}</div>
+                    <div class="selection-title">${relData.title}</div>
                 </div>
             `;
 
-            setupCardInteractions(card);
-
-            card.onclick = () => {
+            btn.onclick = () => {
                 const isExam = ['P1', 'P2', 'C'].includes(themeId);
                 const prefix = isExam ? '' : 'T';
                 window.location.hash = `#/logica/${prefix}${themeId}/${relId}`;
             };
 
-            frag.appendChild(card);
+            frag.appendChild(btn);
         });
 
+        DOM.relationsGrid.classList.add('selection-grid');
         DOM.relationsGrid.innerHTML = '';
         DOM.relationsGrid.appendChild(frag);
 
@@ -866,7 +1005,14 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.views.exercises.classList.remove('hidden-view');
         DOM.views.exercises.classList.add('active-view');
 
-        DOM.currentThemeTitle.textContent = relationData.title;
+        const relNumRaw = String(relationId || '').replace('rel', '');
+        const relNum = relNumRaw ? relNumRaw.padStart(2, '0') : '';
+        const isExam = ['P1', 'P2', 'C'].includes(themeId);
+        if (isExam) {
+            DOM.currentThemeTitle.textContent = `${themeData.title} · ${relationData.title}`;
+        } else {
+            DOM.currentThemeTitle.textContent = `Relación ${relNum} · ${relationData.title}`;
+        }
 
         const frag = document.createDocumentFragment();
         const exEntries = Object.entries(relationData.exercises).sort((a, b) => {

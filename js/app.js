@@ -1638,18 +1638,25 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
             state.currentExercise = null;
             state.currentStep = -1;
 
-            // Hide all other views before showing isabelle (prevents overlap)
-            if (DOM.views.exercises.classList.contains('active-view')) DOM.views.exercises.classList.replace('active-view', 'hidden-view');
-            if (DOM.views.wiki.classList.contains('active-view')) DOM.views.wiki.classList.replace('active-view', 'hidden-view');
-            if (DOM.views.relations && DOM.views.relations.classList.contains('active-view')) DOM.views.relations.classList.replace('active-view', 'hidden-view');
-            const adminViewErr = document.getElementById('admin-view');
-            if (adminViewErr && adminViewErr.classList.contains('active-view')) adminViewErr.classList.replace('active-view', 'hidden-view');
+        // Hide all other views before showing isabelle (prevents overlap)
+        if (DOM.views.exercises.classList.contains('active-view')) DOM.views.exercises.classList.replace('active-view', 'hidden-view');
+        if (DOM.views.wiki.classList.contains('active-view')) DOM.views.wiki.classList.replace('active-view', 'hidden-view');
+        if (DOM.views.relations && DOM.views.relations.classList.contains('active-view')) DOM.views.relations.classList.replace('active-view', 'hidden-view');
+        const adminViewErr = document.getElementById('admin-view');
+        if (adminViewErr && adminViewErr.classList.contains('active-view')) adminViewErr.classList.replace('active-view', 'hidden-view');
 
-            DOM.views.isabelle.classList.remove('hidden-view');
-            DOM.views.isabelle.classList.add('active-view');
-            DOM.globalHeader.classList.remove('hidden-element');
-            return;
-        }
+        DOM.views.isabelle.classList.remove('hidden-view');
+        DOM.views.isabelle.classList.add('active-view');
+        DOM.globalHeader.classList.remove('hidden-element');
+        return;
+    }
+
+    // Re-enable Next Button in case it was disabled by a previous missing data view
+    if (DOM.isabelle.btnNext) {
+        DOM.isabelle.btnNext.disabled = false;
+        DOM.isabelle.btnNext.style.opacity = '1';
+        DOM.isabelle.btnNext.style.cursor = 'pointer';
+    }
 
         // Mark as visited (Base Name)
         const baseName = proofId.replace(/(_decl|_auto)$/, '');

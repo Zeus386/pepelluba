@@ -2116,18 +2116,18 @@ body.dark-mode .adm-step-card textarea {
     }
 
     .explanation-panel {
-        overflow: visible !important;
-        padding: 1rem !important;
+        overflow: hidden !important;
+        padding: 0 !important;
         display: flex;
         flex-direction: column;
     }
 
     .explanation-scroll-container {
-        padding: 0 !important;
-        padding-bottom: 0 !important;
-        overflow: visible !important;
-        flex: none;
-        height: auto;
+        padding: 1.5rem !important;
+        padding-bottom: 5rem !important;
+        overflow-y: auto !important;
+        flex: 1;
+        height: 100%;
     }
 
     #code-container.code-font {
@@ -2183,19 +2183,19 @@ body.dark-mode .adm-step-card textarea {
         max-width: 1100px;
     }
 
-    /* Fixed buttons for mobile */
+    /* Absolute buttons for mobile bounded by panel context */
     .controls {
-        position: fixed !important;
-        bottom: env(safe-area-inset-bottom, 20px) !important;
-        right: env(safe-area-inset-right, 20px) !important;
-        z-index: 1000 !important;
+        position: absolute !important;
+        bottom: 1rem !important;
+        right: 1.5rem !important;
+        z-index: 10 !important;
     }
 
     .controls-left {
-        position: fixed !important;
-        bottom: env(safe-area-inset-bottom, 20px) !important;
-        left: env(safe-area-inset-left, 20px) !important;
-        z-index: 1000 !important;
+        position: absolute !important;
+        bottom: 1rem !important;
+        left: 1.5rem !important;
+        z-index: 10 !important;
     }
 }
 
@@ -2204,13 +2204,11 @@ body.dark-mode .adm-step-card textarea {
     .isabelle-workspace {
         flex-direction: row !important;
         padding: 0.5rem !important;
-        padding-bottom: 4rem !important;
-        overflow-y: auto !important;
+        padding-bottom: 1rem !important;
+        overflow: hidden !important; 
     }
 
     .isabelle-workspace .code-panel {
-        max-height: none;
-        min-height: auto;
         flex: 1;
         overflow-y: auto;
         border-right: 1px solid rgba(0, 0, 0, 0.05); /* Restore right border in landscape */
@@ -2224,8 +2222,7 @@ body.dark-mode .adm-step-card textarea {
 
     .isabelle-workspace .explanation-panel {
         flex: 1;
-        min-height: auto;
-        overflow-y: auto !important;
+        overflow-y: hidden !important;
     }
 
     .panel {

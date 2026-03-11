@@ -145,20 +145,5 @@ const EXERCISES_DATA = {
 
 window.EXERCISES_DATA = EXERCISES_DATA;
 
-// Consolidación de todos los objetos de pruebas
-window.ALL_PROOFS = {
-    ...(window.BOLETIN1_PROOFS || {}),
-    ...(window.BOLETIN2_PROOFS || {}),
-    ...(window.BOLETIN3_PROOFS || {}),
-    ...(window.BOLETIN4_PROOFS || {}),
-    ...(window.BOLETIN5_PROOFS || {}),
-    ...(window.BOLETIN6_PROOFS || {}),
-    ...(window.BOLETIN7_PROOFS || {}),
-    ...(window.BOLETIN8_PROOFS || {}),
-    ...(window.BOLETIN9_PROOFS || {}),
-    ...(window.BOLETIN10_PROOFS || {}),
-    ...(window.BOLETIN11_PROOFS || {}),
-    ...(window.PRIMER_PARCIAL_PROOFS || {}),
-    ...(window.SEGUNDO_PARCIAL_PROOFS || {}),
-    ...(window.CONVOCATORIA_PROOFS || {})
-};
+// La consolidación de ALL_PROOFS ahora se realiza en app.js mediante lazyLoadData()
+window.ALL_PROOFS = window.ALL_PROOFS || {};

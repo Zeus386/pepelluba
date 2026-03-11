@@ -17,7 +17,8 @@
         currentStep: -1,
         sidebarInitialized: false,
         proofs: {},
-        progress: {}
+        progress: {},
+        dataLoaded: false
     };
 
     const DOM = {
@@ -94,6 +95,51 @@
             localStorage.removeItem('pepeweb_admin_config');
             localStorage.removeItem('pepeweb_admin_proofs');
         }
+    }
+
+    async function lazyLoadData() {
+        if (state.dataLoaded) return;
+        
+        const files = [
+            'BOLETIN1', 'BOLETIN2', 'BOLETIN3', 'BOLETIN4', 'BOLETIN5',
+            'BOLETIN6', 'BOLETIN7', 'BOLETIN8', 'BOLETIN9', 'BOLETIN10',
+            'BOLETIN11', 'PRIMER_PARCIAL', 'SEGUNDO_PARCIAL', 'CONVOCATORIA'
+        ];
+        
+        await Promise.all(files.map(f => {
+            return new Promise((resolve) => {
+                const s = document.createElement('script');
+                s.src = `js/data/${f}.js`;
+                s.async = true;
+                s.onload = resolve;
+                s.onerror = (e) => {
+                    console.warn(`Failed to lazy load ${f}`, e);
+                    resolve();
+                };
+                document.body.appendChild(s);
+            });
+        }));
+
+        state.proofs = {
+            ...(window.ALL_PROOFS || {}),
+            ...(window.BOLETIN1_PROOFS || {}),
+            ...(window.BOLETIN2_PROOFS || {}),
+            ...(window.BOLETIN3_PROOFS || {}),
+            ...(window.BOLETIN4_PROOFS || {}),
+            ...(window.BOLETIN5_PROOFS || {}),
+            ...(window.BOLETIN6_PROOFS || {}),
+            ...(window.BOLETIN7_PROOFS || {}),
+            ...(window.BOLETIN8_PROOFS || {}),
+            ...(window.BOLETIN9_PROOFS || {}),
+            ...(window.BOLETIN10_PROOFS || {}),
+            ...(window.BOLETIN11_PROOFS || {}),
+            ...(window.PRIMER_PARCIAL_PROOFS || {}),
+            ...(window.SEGUNDO_PARCIAL_PROOFS || {}),
+            ...(window.CONVOCATORIA_PROOFS || {})
+        };
+        
+        state.dataLoaded = true;
+        console.log('PEPELLUBA: Data lazy-loaded successfully.');
     }
 
     function isHierarchicalConfig(cfg) {
@@ -1057,13 +1103,17 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
             sidebarSubmenuAnchorBtn.setAttribute('aria-expanded', 'false');
         }
         sidebarSubmenuAnchorBtn = null;
+        
+        // No auto-closing sidebars here to let the router handle it specifically 
+        // upon navigation to avoid race conditions.
+
         if (sidebarSubmenuNav) {
             if (submenuClearTimer) clearTimeout(submenuClearTimer);
             submenuClearTimer = setTimeout(() => {
-                if (!sidebarSubmenu.classList.contains('open')) {
-                    sidebarSubmenuNav.innerHTML = '';
+                if (!sidebarSubmenu || !sidebarSubmenu.classList.contains('open')) {
+                    if (sidebarSubmenuNav) sidebarSubmenuNav.innerHTML = '';
                 }
-            }, 350); // Wait for transition
+            }, 350); 
         }
     }
 
@@ -1218,17 +1268,19 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
             positionSidebarSubmenu();
             sidebarSubmenuNav.animate([
                 { opacity: 1, transform: 'translate3d(0, 0, 0)' },
-                { opacity: 0, transform: 'translate3d(-6px, 0, 0)' }
-            ], { duration: 120, easing: 'ease-out', fill: 'forwards' }).finished.then(() => {
+                { opacity: 0, transform: 'translate3d(-10px, 0, 0)' }
+            ], { duration: 150, easing: 'ease-out', fill: 'forwards' }).finished.then(() => {
                 render();
                 positionSidebarSubmenu();
                 sidebarSubmenuNav.animate([
-                    { opacity: 0, transform: 'translate3d(6px, 0, 0)' },
+                    { opacity: 0, transform: 'translate3d(10px, 0, 0)' },
                     { opacity: 1, transform: 'translate3d(0, 0, 0)' }
-                ], { duration: 180, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
+                ], { duration: 250, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
             });
         } else {
-            closeSidebarSubmenu();
+            // Ensure any stale data is gone if we weren't switching
+            if (!sidebarSubmenu.classList.contains('open')) sidebarSubmenuNav.innerHTML = '';
+            
             sidebarSubmenuThemeId = 'EX';
             sidebarSubmenuAnchorBtn = anchorBtn || null;
             if (sidebarSubmenuAnchorBtn) sidebarSubmenuAnchorBtn.setAttribute('aria-expanded', 'true');
@@ -2078,6 +2130,7 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
         closeSidebarSubmenu();
 
         if (hash.startsWith('#/logica')) {
+            await lazyLoadData();
             const parts = hash.split('/');
             const wasInIntro = DOM.screens.intro.classList.contains('active');
             const isDirect = document.documentElement.classList.contains('direct-logica');
@@ -2109,22 +2162,34 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
             if (parts.length === 2) {
                 openWikiView(!wasInIntro);
             } else if (parts.length === 3) {
-                if (parts[2] === 'EX') {
-                    renderExamsMenu(!wasInIntro);
-                    const exBtn = Array.from(document.querySelectorAll('#theme-nav .theme-btn')).find(b => b.textContent === 'EX');
-                    openSidebarSubmenuEx(exBtn || null);
+                 if (parts[2] === 'EX') {
+                     renderExamsMenu(!wasInIntro);
+                     const exBtn = Array.from(document.querySelectorAll('#theme-nav .theme-btn')).find(b => b.textContent === 'EX');
+                     
+                     // Only auto-open submenu if NOT in mobile or if we explicitly clicked it
+                     if (!mobileSidebarMedia.matches) {
+                         openSidebarSubmenuEx(exBtn || null);
+                     }
                 } else if (parts[2].startsWith('T')) {
-                    const themeId = parts[2].slice(1);
-                    const themeData = window.EXERCISES_DATA?.[themeId];
-                    const relEntries = Object.entries(themeData?.relations || {});
-                    if (relEntries.length === 1) {
-                        const [relId] = relEntries[0];
-                        renderThemeEjercicios(themeId, relId, !wasInIntro);
-                    } else {
-                        openWikiView(!wasInIntro);
-                        const tBtn = Array.from(document.querySelectorAll('#theme-nav .theme-btn')).find(b => b.textContent === `T${themeId}`);
-                        openSidebarSubmenu(themeId, tBtn || null);
-                    }
+                     const themeId = parts[2].slice(1);
+                     const themeData = window.EXERCISES_DATA?.[themeId];
+                     const relEntries = Object.entries(themeData?.relations || {});
+                     if (relEntries.length === 1) {
+                         const [relId] = relEntries[0];
+                         renderThemeEjercicios(themeId, relId, !wasInIntro);
+                         if (mobileSidebarMedia.matches) closeMobileSidebar();
+                     } else {
+                         openWikiView(!wasInIntro);
+                         const tBtn = Array.from(document.querySelectorAll('#theme-nav .theme-btn')).find(b => b.textContent === `T${themeId}`);
+                         if (!mobileSidebarMedia.matches) {
+                            openSidebarSubmenu(themeId, tBtn || null);
+                         } else {
+                            // On mobile, if they just clicked the theme, we open the sidebar 
+                            // to show the options, but if they are navigating back, we close it.
+                            // The most consistent behavior is closing the sidebar upon successful view render.
+                            closeMobileSidebar();
+                         }
+                     }
                 } else {
                     const themeId = parts[2];
                     if (['P1', 'P2', 'C'].includes(themeId)) {

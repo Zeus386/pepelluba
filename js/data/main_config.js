@@ -18,7 +18,7 @@ const EXERCISES_DATA = {
                     "exe11": { title: "Pedro, Quintín y Raúl", name: "1_11_auto", defaultMethod: "Solución Automática (auto)" },
                     "exe12": { title: "Sistema de Control", name: "1_12_auto", defaultMethod: "Solución Automática (auto)" },
                     "exe13": { title: "Trabajo y Vida", name: "1_13_auto", defaultMethod: "Solución Automática (auto)" },
-                    "exe_extra": { title: "Extra: Veraces y Mentirosos", name: "1_extra_auto", defaultMethod: "Solución Automática (auto)" }
+                    "exe14": { title: "Veraces y Mentirosos", name: "1_extra_auto", defaultMethod: "Solución Automática (auto)" }
                 }
             }
         }

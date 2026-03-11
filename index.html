@@ -535,7 +535,16 @@
                             </div>
                         </div>
 
-                        <!-- Controles Minimalistas Flotantes -->
+                        <!-- Check Button (Left) -->
+                        <div class="controls-left">
+                            <button id="btn-completed" class="control-btn" title="Marcar como entendido" aria-pressed="false">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 6L9 17l-5-5"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Navigation Controls (Right) -->
                         <div class="controls">
                             <button id="btn-prev" class="control-btn" disabled>
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -592,12 +601,21 @@
                 <p>¿Cómo quieres resolver este ejercicio?</p>
                 <div class="modal-actions">
                     <button id="btn-mode-decl" class="mode-btn">
-                        <span class="mode-icon">📝</span>
+                        <div class="mode-icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </div>
                         <span class="mode-label">Modo Declarativa</span>
                         <span class="mode-desc">Estilo Isar (legible)</span>
                     </button>
                     <button id="btn-mode-appl" class="mode-btn">
-                        <span class="mode-icon">⚡</span>
+                        <div class="mode-icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                            </svg>
+                        </div>
                         <span class="mode-label">Modo Aplicativa</span>
                         <span class="mode-desc">Scripts de tácticas</span>
                     </button>

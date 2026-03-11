@@ -16,7 +16,8 @@
         currentExercise: null,
         currentStep: -1,
         sidebarInitialized: false,
-        proofs: {}
+        proofs: {},
+        progress: {}
     };
 
     const DOM = {
@@ -33,12 +34,26 @@
         currentRelationThemeTitle: null,
         isabelle: {
             title: null, codeContainer: null, explanation: null, hypotheses: null,
-            progress: null, btnPrev: null, btnNext: null, codeScroll: null
+            progress: null, btnPrev: null, btnNext: null, btnCompleted: null, codeScroll: null
         },
         adminView: null,
         themeBtns: [],
         modal: { overlay: null, btnDecl: null, btnAppl: null, btnCancel: null }
     };
+
+    // Helper: Throttle function for performance
+    function throttle(func, limit) {
+        let inThrottle;
+        return function() {
+            const args = arguments;
+            const context = this;
+            if (!inThrottle) {
+                func.apply(context, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        }
+    }
 
     // ==========================================
     // 1. STATE MODULE
@@ -47,6 +62,13 @@
         state.themes = Object.keys(window.EXERCISES_DATA || {}).sort((a, b) => Number(a) - Number(b));
         state.proofs = { ...(window.ALL_PROOFS || {}) };
         
+        try {
+            const savedProgress = localStorage.getItem('pepeweb_progress');
+            if (savedProgress) {
+                state.progress = JSON.parse(savedProgress);
+            }
+        } catch (e) { console.warn('Progress load error', e); }
+
         try {
             const cachedConfig = localStorage.getItem('pepeweb_admin_config');
             if (cachedConfig) {
@@ -128,6 +150,7 @@
         DOM.isabelle.progress = document.getElementById('progress-bar');
         DOM.isabelle.btnPrev = document.getElementById('btn-prev');
         DOM.isabelle.btnNext = document.getElementById('btn-next');
+        DOM.isabelle.btnCompleted = document.getElementById('btn-completed');
         DOM.isabelle.codeScroll = document.getElementById('code-scroll');
 
         DOM.modal.overlay = document.getElementById('mode-selection-modal');
@@ -237,11 +260,13 @@
             }
         }
 
-        document.addEventListener('mousemove', (e) => {
+        const onMove = throttle((e) => {
             targetX = (e.clientX / window.innerWidth - 0.5) * strength * 2;
             targetY = (e.clientY / window.innerHeight - 0.5) * strength * 2;
             if (!raf) raf = requestAnimationFrame(commit);
-        }, { passive: true });
+        }, 50);
+
+        document.addEventListener('mousemove', onMove, { passive: true });
 
         document.addEventListener('mouseleave', () => {
             targetX = 0;
@@ -1242,20 +1267,34 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
             });
         }
 
+        if (DOM.isabelle.btnCompleted) {
+            DOM.isabelle.btnCompleted.addEventListener('click', toggleExerciseCompletion);
+        }
+
         let lastWheelTime = 0;
         const WHEEL_THROTTLE_MS = 220;
-        document.addEventListener('wheel', (e) => {
-            if (!DOM.views.isabelle.classList.contains('active-view')) return;
-            const now = Date.now();
-            if (now - lastWheelTime < WHEEL_THROTTLE_MS) return;
-            lastWheelTime = now;
 
-            if (e.deltaY > 0) {
-                DOM.isabelle.btnNext.click();
-            } else if (e.deltaY < 0) {
-                DOM.isabelle.btnPrev.click();
-            }
-        }, { passive: true });
+        // Rueda ratón SOLO sobre el panel de código:
+        // - en el bloque de código: avanza / retrocede pasos
+        // - en el panel de explicación: scroll normal del navegador
+        if (DOM.isabelle.codeScroll) {
+            DOM.isabelle.codeScroll.addEventListener('wheel', (e) => {
+                if (!DOM.views.isabelle.classList.contains('active-view')) return;
+
+                const now = Date.now();
+                if (now - lastWheelTime < WHEEL_THROTTLE_MS) return;
+                lastWheelTime = now;
+
+                // Bloqueamos el scroll nativo del panel de código y usamos la rueda como navegación
+                e.preventDefault();
+
+                if (e.deltaY > 0) {
+                    DOM.isabelle.btnNext.click();
+                } else if (e.deltaY < 0) {
+                    DOM.isabelle.btnPrev.click();
+                }
+            }, { passive: false });
+        }
 
         document.addEventListener('keydown', (e) => {
             if (DOM.views.isabelle.classList.contains('active-view')) {
@@ -1431,6 +1470,7 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
         const relNumRaw = String(relationId || '').replace('rel', '');
         const relNum = relNumRaw ? relNumRaw.padStart(2, '0') : '';
         const isExam = ['P1', 'P2', 'C'].includes(themeId);
+        
         if (isExam) {
             DOM.currentThemeTitle.textContent = `${themeData.title} · ${relationData.title}`;
         } else {
@@ -1439,22 +1479,62 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
 
         const frag = document.createDocumentFragment();
         const exEntries = Object.entries(relationData.exercises).sort((a, b) => {
-            return parseInt(a[0].replace('exe', '')) - parseInt(b[0].replace('exe', ''));
+            const numA = parseInt(a[0].replace('exe', ''));
+            const numB = parseInt(b[0].replace('exe', ''));
+            
+            if (isNaN(numA) && isNaN(numB)) return a[0].localeCompare(b[0]);
+            if (isNaN(numA)) return 1; // Put extra at bottom
+            if (isNaN(numB)) return -1;
+            
+            return numA - numB;
         });
 
         exEntries.forEach(([exKey, exData]) => {
             const card = document.createElement('div');
             card.className = 'exercise-card liquidGlass-wrapper';
-            const num = exKey.replace('exe', '');
+            const numRaw = exKey.replace('exe', '');
+            const isExtra = isNaN(parseInt(numRaw));
+            const num = isExtra ? '★' : numRaw.padStart(2, '0');
+            
+            // Check Progress (Normalize name by stripping suffix)
+            const baseName = exData.name.replace(/(_decl|_auto)$/, '');
+            
+            // Check if ANY variant is completed or visited
+            let isCompleted = false;
+            let isVisited = false;
+            
+            // Check base name
+            if (state.progress[baseName]) {
+                if (state.progress[baseName].completed) isCompleted = true;
+                if (state.progress[baseName].visited) isVisited = true;
+            }
+            // Check known variants
+            if (state.progress[baseName + '_decl']) {
+                if (state.progress[baseName + '_decl'].completed) isCompleted = true;
+                if (state.progress[baseName + '_decl'].visited) isVisited = true;
+            }
+            if (state.progress[baseName + '_auto']) {
+                if (state.progress[baseName + '_auto'].completed) isCompleted = true;
+                if (state.progress[baseName + '_auto'].visited) isVisited = true;
+            }
+
+            if (isCompleted) card.classList.add('completed');
+            if (!isVisited) card.classList.add('unvisited');
+
+            // Determine Label
+            let label = "Ejercicio";
+            if (isExam) label = "Pregunta";
+            if (isExtra) label = "Extra";
 
             card.innerHTML = `
                 <div class="liquidGlass-effect"></div>
                 <div class="liquidGlass-tint"></div>
                 <div class="liquidGlass-shine"></div>
-                <div class="liquidGlass-text card-content">
-                    <h4>${num.padStart(2, '0')}</h4>
-                    <div style="font-size: 0.65rem; opacity: 0.5; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Ejercicio</div>
+                <div class="liquidGlass-text card-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem;">
+                    <span style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 600; line-height: 1;">${num}</span>
+                    <span style="font-size: 0.85rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; font-weight: 500;">${label}</span>
                 </div>
+                ${!isVisited ? '<div class="pulse-dot"></div>' : ''}
             `;
 
             setupCardInteractions(card);
@@ -1484,7 +1564,7 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
             cardRect = card.getBoundingClientRect();
         }, { passive: true });
 
-        card.addEventListener("pointermove", (e) => {
+        const onMove = throttle((e) => {
             if (!cardRect) return;
             if (rafId) cancelAnimationFrame(rafId);
 
@@ -1498,7 +1578,9 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
                 card.style.setProperty("--ratio-y", ratioY.toFixed(3));
                 card.style.setProperty("--correction", "0%");
             });
-        }, { passive: true });
+        }, 30); // Throttled to ~33fps equivalent for calculation
+
+        card.addEventListener("pointermove", onMove, { passive: true });
 
         card.addEventListener("pointerleave", () => {
             if (rafId) cancelAnimationFrame(rafId);
@@ -1530,13 +1612,51 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
 
         if (!proofData) {
             console.warn("Prueba no encontrada en ALL_PROOFS:", proofId);
-            // Mostrar error visual al usuario en el editor
-            DOM.isabelle.title.textContent = "Error: Ejercicio no encontrado";
-            DOM.isabelle.explanation.innerHTML = `<span style="color:#d93025">No se han encontrado los datos para la variante: ${proofId}</span>`;
+            // Mostrar error visual al usuario en el editor, sin restos de ejercicios anteriores
+            DOM.isabelle.title.textContent = "Datos no encontrados";
             DOM.isabelle.codeContainer.innerHTML = '';
-             DOM.views.isabelle.classList.remove('hidden-view');
+            DOM.isabelle.explanation.innerHTML = `
+                <div style="text-align: center; padding: 2.5rem 1.5rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                    <h3 style="color: var(--c-text-main); margin-bottom: 0.75rem;">Datos no encontrados</h3>
+                    <p style="color: var(--c-text-muted);">
+                        No se han encontrado los datos para la variante:
+                        <strong>${proofId}</strong>
+                    </p>
+                </div>`;
+            DOM.isabelle.hypotheses.innerHTML = '<div style="color:var(--c-text-muted);font-style:italic">Sin datos para este ejercicio.</div>';
+            DOM.isabelle.progress.style.width = '0%';
+            if (DOM.isabelle.btnPrev) {
+                DOM.isabelle.btnPrev.disabled = true;
+            }
+            if (DOM.isabelle.btnNext) {
+                DOM.isabelle.btnNext.disabled = true;
+                DOM.isabelle.btnNext.style.opacity = '0.5';
+                DOM.isabelle.btnNext.style.cursor = 'default';
+            }
+
+            state.currentExercise = null;
+            state.currentStep = -1;
+
+            // Hide all other views before showing isabelle (prevents overlap)
+            if (DOM.views.exercises.classList.contains('active-view')) DOM.views.exercises.classList.replace('active-view', 'hidden-view');
+            if (DOM.views.wiki.classList.contains('active-view')) DOM.views.wiki.classList.replace('active-view', 'hidden-view');
+            if (DOM.views.relations && DOM.views.relations.classList.contains('active-view')) DOM.views.relations.classList.replace('active-view', 'hidden-view');
+            const adminViewErr = document.getElementById('admin-view');
+            if (adminViewErr && adminViewErr.classList.contains('active-view')) adminViewErr.classList.replace('active-view', 'hidden-view');
+
+            DOM.views.isabelle.classList.remove('hidden-view');
             DOM.views.isabelle.classList.add('active-view');
+            DOM.globalHeader.classList.remove('hidden-element');
             return;
+        }
+
+        // Mark as visited (Base Name)
+        const baseName = proofId.replace(/(_decl|_auto)$/, '');
+        if (!state.progress[baseName]) state.progress[baseName] = {};
+        if (!state.progress[baseName].visited) {
+            state.progress[baseName].visited = true;
+            localStorage.setItem('pepeweb_progress', JSON.stringify(state.progress));
         }
 
         state.currentExercise = proofData;
@@ -1552,6 +1672,14 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
         DOM.isabelle.hypotheses.innerHTML = '';
         DOM.isabelle.progress.style.width = '0%';
         DOM.isabelle.btnPrev.disabled = true;
+
+        // Update Completed Button State
+        if (DOM.isabelle.btnCompleted) {
+            const isCompleted = state.progress[baseName]?.completed;
+            DOM.isabelle.btnCompleted.classList.toggle('active', !!isCompleted);
+            DOM.isabelle.btnCompleted.setAttribute('aria-pressed', !!isCompleted);
+            DOM.isabelle.btnCompleted.title = isCompleted ? "Marcar como no entendido" : "Marcar como entendido";
+        }
 
         if (DOM.views.exercises.classList.contains('active-view')) DOM.views.exercises.classList.replace('active-view', 'hidden-view');
         if (DOM.views.wiki.classList.contains('active-view')) DOM.views.wiki.classList.replace('active-view', 'hidden-view');
@@ -1572,6 +1700,34 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
 
         DOM.globalHeader.classList.remove('hidden-element');
         DOM.isabelle.btnNext.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
+    }
+
+    function toggleExerciseCompletion() {
+        if (!state.currentExercise) return;
+        
+        // Find the key in ALL_PROOFS by value equality (since state.currentExercise is the object)
+        // Or better, assume we stored the ID somewhere. state.currentExercise doesn't have ID.
+        // We can find it via window.location.hash logic or just pass it.
+        // Actually, let's use the ID from the URL hash for reliability.
+        const hash = window.location.hash;
+        const parts = hash.split('/');
+        const proofId = parts.length === 5 ? parts[4] : null;
+
+        if (!proofId) return;
+
+        // Strip suffix for base name consistency
+        const baseName = proofId.replace(/(_decl|_auto)$/, '');
+
+        if (!state.progress[baseName]) state.progress[baseName] = {};
+        state.progress[baseName].completed = !state.progress[baseName].completed;
+        localStorage.setItem('pepeweb_progress', JSON.stringify(state.progress));
+
+        const isCompleted = state.progress[baseName].completed;
+        if (DOM.isabelle.btnCompleted) {
+            DOM.isabelle.btnCompleted.classList.toggle('active', isCompleted);
+            DOM.isabelle.btnCompleted.setAttribute('aria-pressed', isCompleted);
+            DOM.isabelle.btnCompleted.title = isCompleted ? "Marcar como no entendido" : "Marcar como entendido";
+        }
     }
 
     function exitExerciseView(updateHistory = true) {
@@ -1642,10 +1798,19 @@ Devuélveme ÚNICAMENTE un objeto JSON con la siguiente estructura, sin texto ad
 
         DOM.isabelle.btnPrev.disabled = (stepIdx === -1);
 
+        // Fix: Do not show duplicate checkmark. At the end, disable next button or hide it.
+        // The persistent completion state is handled by btnCompleted.
         if (stepIdx === steps.length - 1) {
-            DOM.isabelle.btnNext.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
+            // Option: Disable next button to indicate end of steps
+            DOM.isabelle.btnNext.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
+            DOM.isabelle.btnNext.disabled = true;
+            DOM.isabelle.btnNext.style.opacity = '0.5';
+            DOM.isabelle.btnNext.style.cursor = 'default';
         } else {
             DOM.isabelle.btnNext.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
+            DOM.isabelle.btnNext.disabled = false;
+            DOM.isabelle.btnNext.style.opacity = '1';
+            DOM.isabelle.btnNext.style.cursor = 'pointer';
         }
     }
 
